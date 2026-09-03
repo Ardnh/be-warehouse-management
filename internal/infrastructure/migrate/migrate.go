@@ -30,6 +30,8 @@ func Migrate(db *gorm.DB) error {
 		&entity.InboundOrderItem{},
 		&entity.Receiving{},
 		&entity.ReceivingItem{},
+		&entity.HandlingUnit{},
+		&entity.HandlingUnitItem{},
 	)
 
 	if err != nil {
