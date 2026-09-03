@@ -105,15 +105,15 @@ func (s *AuthServiceImpl) Register(ctx context.Context, req dto.RegisterRequestD
 	}
 
 	// Add role grouping to Casbin
-	_, err = s.casbinEnforcer.AddGroupingPolicy(user.ID.String(), constants.RoleDailyUser)
-	if err != nil {
-		s.log.WithFields(logrus.Fields{
-			"email":  req.Email,
-			"userID": user.ID,
-			"error":  err,
-		}).Error("failed to add casbin grouping policy")
-		return fiber.ErrInternalServerError
-	}
+	// _, err = s.casbinEnforcer.AddGroupingPolicy(user.ID.String(), constants.RoleDailyUser)
+	// if err != nil {
+	// 	s.log.WithFields(logrus.Fields{
+	// 		"email":  req.Email,
+	// 		"userID": user.ID,
+	// 		"error":  err,
+	// 	}).Error("failed to add casbin grouping policy")
+	// 	return fiber.ErrInternalServerError
+	// }
 
 	return nil
 }

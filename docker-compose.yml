@@ -42,7 +42,7 @@ services:
         volumes:
             - warehouse_management_postgres_data:/var/lib/postgresql
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U root -d warehouse_management_app_db"]
+            test: ["CMD-SHELL", "pg_isready -U root -d warehouse_management_db"]
             interval: 10s
             timeout: 5s
             retries: 5
