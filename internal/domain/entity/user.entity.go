@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// entity/user.go
 type User struct {
 	ID           uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Username     string    `gorm:"type:varchar(50);uniqueIndex:uq_users_username;not null"`
