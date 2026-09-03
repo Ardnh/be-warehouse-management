@@ -35,6 +35,7 @@ type Config struct {
 }
 
 type AppConfig struct {
+	Env       string
 	Port      string
 	JWTSecret string
 }
@@ -44,11 +45,11 @@ func LoadConfig() *Config {
 	return &Config{
 		Database: DatabaseConfig{
 			Host:            getRequiredEnv("DB_HOST"),
-			Port:            getRequiredEnv("DB_HOST"),
-			User:            getRequiredEnv("DB_HOST"),
-			Password:        getRequiredEnv("DB_HOST"),
-			DBName:          getRequiredEnv("DB_HOST"),
-			SSLMode:         getRequiredEnv("DB_HOST"),
+			Port:            getRequiredEnv("DB_PORT"),
+			User:            getRequiredEnv("DB_USERNAME"),
+			Password:        getRequiredEnv("DB_PASSWORD"),
+			DBName:          getRequiredEnv("DB_NAME"),
+			SSLMode:         getRequiredEnv("DB_SSLMODE"),
 			MaxIdleConns:    getEnvAsInt("DB_MAX_IDLE_CONNS"),
 			MaxOpenConns:    getEnvAsInt("DB_MAX_OPEN_CONNS"),
 			ConnMaxLifetime: getEnvAsDuration("DB_CONN_MAX_LIFETIME"),
@@ -56,13 +57,14 @@ func LoadConfig() *Config {
 		Redis: RedisConfig{
 			Host:     getRequiredEnv("REDIS_HOST"),
 			Port:     getRequiredEnv("REDIS_PORT"),
-			Password: getRequiredEnv("REDIS_PASSWORD"),
+			Password: getOptionalEnv("REDIS_PASSWORD"),
 			DB:       getEnvAsInt("REDIS_DB"),
 			PoolSize: getEnvAsInt("REDIS_POOL_SIZE"),
 		},
 		App: AppConfig{
 			Port:      getRequiredEnv("APP_SERVER_PORT"),
 			JWTSecret: getRequiredEnv("APP_JWT_SECRET"),
+			Env:       getRequiredEnv("APP_ENVIRONMENT"),
 		},
 	}
 }
@@ -85,6 +87,11 @@ func getRequiredEnv(key string) string {
 		log.Fatalf("required environment variable %s is not set", key)
 	}
 
+	return value
+}
+
+func getOptionalEnv(key string) string {
+	value := os.Getenv(key)
 	return value
 }
 
