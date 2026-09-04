@@ -8,9 +8,9 @@ import (
 )
 
 type CustomerRepository interface {
-	FindAll(ctx context.Context) ([]entity.Customer, error)
-	FindByID(ctx context.Context, id uuid.UUID) (entity.Customer, error)
+	FindAll(ctx context.Context, filter Filter) ([]entity.Customer, int64, error)
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.Customer, error)
 	Create(ctx context.Context, customer entity.Customer) error
-	Update(ctx context.Context, customer entity.Customer) error
-	Delete(ctx context.Context, customer entity.Customer) error
+	Update(ctx context.Context, customer *entity.Customer) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
