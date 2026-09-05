@@ -19,20 +19,26 @@ type Customer struct {
 }
 
 type CreateCustomerRequest struct {
-	Code    string `json:"code"`
-	Name    string `json:"name"`
-	Address string `json:"address"`
-	Status  string `json:"status"`
+	Code    string `json:"code" validate:"required"`
+	Name    string `json:"name" validate:"required"`
+	Address string `json:"address" validate:"required"`
+	Status  string `json:"status" validate:"required"`
+	Email   string `json:"email" validate:"required"`
+	Phone   string `json:"phone" validate:"required"`
 }
 
 type UpdateCustomerRequest struct {
-	Code    string `json:"code"`
-	Name    string `json:"name"`
-	Address string `json:"address"`
-	Status  string `json:"status"`
+	Name    string `json:"name" validate:"required"`
+	Address string `json:"address" validate:"required"`
+	Status  string `json:"status" validate:"required"`
+	Email   string `json:"email" validate:"required"`
+	Phone   string `json:"phone" validate:"required"`
 }
 
-func NewCustomerResponse(c entity.Customer) Customer {
+func ToCustomerDTO(c *entity.Customer) Customer {
+	if c == nil {
+		return Customer{}
+	}
 	return Customer{
 		ID:        c.ID,
 		Code:      c.Code,
@@ -43,4 +49,12 @@ func NewCustomerResponse(c entity.Customer) Customer {
 		UpdatedAt: c.UpdatedAt,
 		DeletedAt: c.DeletedAt.Time,
 	}
+}
+
+func ToCustomerDTOs(customers []entity.Customer) []Customer {
+	customerDTOs := make([]Customer, 0, len(customers))
+	for _, c := range customers {
+		customerDTOs = append(customerDTOs, ToCustomerDTO(&c))
+	}
+	return customerDTOs
 }

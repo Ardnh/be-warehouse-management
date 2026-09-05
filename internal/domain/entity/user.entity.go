@@ -10,7 +10,7 @@ import (
 type User struct {
 	ID           uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Username     string    `gorm:"type:varchar(50);uniqueIndex:uq_users_username;not null"`
-	Email        string    `gorm:"type:varchar(150);uniqueIndex:uq_users_email;not null"`
+	Email        string    `gorm:"type:varchar(50);uniqueIndex:uq_users_email;not null"`
 	PasswordHash string    `gorm:"type:varchar(255);not null"`
 	FullName     string    `gorm:"type:varchar(150);not null"`
 	Status       string    `gorm:"type:varchar(20);not null;default:'ACTIVE'"`

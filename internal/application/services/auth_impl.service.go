@@ -10,7 +10,6 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/services"
 	utils "github.com/Ardnh/be-warehouse-management/internal/utils/jwt"
-	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -21,15 +20,13 @@ type AuthServiceImpl struct {
 	userRepository repositories.UserRepository
 	log            *logrus.Logger
 	appConfig      *config.Config
-	casbinEnforcer *casbin.Enforcer
 }
 
-func NewAuthService(userRepository repositories.UserRepository, log *logrus.Logger, appConfig *config.Config, casbinEnforcer *casbin.Enforcer) services.AuthService {
+func NewAuthService(userRepository repositories.UserRepository, log *logrus.Logger, appConfig *config.Config) services.AuthService {
 	return &AuthServiceImpl{
 		userRepository: userRepository,
 		log:            log,
 		appConfig:      appConfig,
-		casbinEnforcer: casbinEnforcer,
 	}
 }
 

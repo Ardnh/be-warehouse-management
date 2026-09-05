@@ -38,6 +38,14 @@ func Migrate(db *gorm.DB) error {
 		return fmt.Errorf("migration failed: %w", err)
 	}
 
+	if err := db.Exec(`
+		CREATE SEQUENCE IF NOT EXISTS customer_code_seq
+		START WITH 1
+		INCREMENT BY 1
+	`).Error; err != nil {
+		return err
+	}
+
 	log.Println("Migration completed successfully")
 	return nil
 }
