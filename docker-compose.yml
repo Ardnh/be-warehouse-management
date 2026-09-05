@@ -38,7 +38,7 @@ services:
         environment:
             - POSTGRES_USER=root
             - POSTGRES_PASSWORD=root
-            - POSTGRES_DB=warehouse_management_app_db
+            - POSTGRES_DB=warehouse_management_db
         volumes:
             - warehouse_management_postgres_data:/var/lib/postgresql
         healthcheck:

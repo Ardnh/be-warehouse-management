@@ -18,12 +18,11 @@ import (
 func main() {
 	godotenv.Load()
 	app := fiber.New()
-
 	log := logrus.New()
 	cfg := config.LoadConfig()
 	validator := validator.New()
 
-	// 2. Initialize database
+	// Initialize database
 	db, err := postgresql.NewPostgresDB(cfg)
 	if err != nil {
 		log.Fatalf("❌ Failed to connect to database: %v", err)
@@ -39,14 +38,32 @@ func main() {
 	// Modules
 	// Repository
 	userRepository := repositories.NewUserRepository(db, redisDb)
+	customerRepository := repositories.NewCustomerRepository(db, redisDb)
+	warehouseRepository := repositories.NewWarehouseRepository(db)
+	uomRepository := repositories.NewUomRepository(db)
+	zoneRepository := repositories.NewZoneRepository(db)
+	rackRepository := repositories.NewRackRepository(db)
+	storageLocationRepository := repositories.NewStorageLocationRepository(db)
 
 	// Service
 	authService := services.NewAuthService(userRepository, log, cfg)
+	customerService := services.NewCustomerService(customerRepository, log)
+	warehouseService := services.NewWarehouseService(warehouseRepository, log)
+	uomService := services.NewUomService(uomRepository, log)
+	zoneService := services.NewZoneService(zoneRepository, log)
+	rackService := services.NewRackService(rackRepository, log)
+	storageLocationService := services.NewStorageLocationService(storageLocationRepository, log)
 
 	// Handler
 	authHandler := handlers.NewAuthHandler(authService, validator, log)
+	customerHandler := handlers.NewCustomerHandler(customerService, validator, log)
+	warehouseHandler := handlers.NewWarehouseHandler(warehouseService, validator, log)
+	uomHandler := handlers.NewUomHandler(uomService, validator, log)
+	zoneHandler := handlers.NewZoneHandler(zoneService, validator, log)
+	rackHandler := handlers.NewRackHandler(rackService, validator, log)
+	storageLocationHandler := handlers.NewStorageLocationHandler(storageLocationService, validator, log)
 
-	routes.SetupAPIRoutes(app, log, validator, authHandler)
+	routes.SetupAPIRoutes(app, log, validator, authHandler, customerHandler, warehouseHandler, uomHandler, zoneHandler, rackHandler, storageLocationHandler)
 
 	log.Fatal(app.Listen(":3000"))
 }

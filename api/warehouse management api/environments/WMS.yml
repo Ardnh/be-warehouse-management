@@ -1,0 +1,8 @@
+name: WMS
+variables:
+  - name: token
+    value: ""
+    description: ""
+  - name: base_url
+    value: http://localhost:3000/api/v1
+    description: ""

@@ -17,7 +17,7 @@ type CustomerServiceImpl struct {
 	log                *logrus.Logger
 }
 
-func NewCustomerServiceImpl(customerRepository repositories.CustomerRepository, log *logrus.Logger) services.CustomerService {
+func NewCustomerService(customerRepository repositories.CustomerRepository, log *logrus.Logger) services.CustomerService {
 	return &CustomerServiceImpl{
 		customerRepository: customerRepository,
 		log:                log,

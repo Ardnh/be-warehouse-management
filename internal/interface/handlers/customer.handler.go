@@ -6,6 +6,7 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/application/dto"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/services"
 	responses "github.com/Ardnh/be-warehouse-management/internal/interface/response"
+	validator_utils "github.com/Ardnh/be-warehouse-management/internal/utils/validator"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -103,6 +104,10 @@ func (h *CustomerHandler) Create(c fiber.Ctx) error {
 		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, err)
 	}
 
+	if err := h.validator.Struct(&request); err != nil {
+		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, validator_utils.FormatValidationErrors(err))
+	}
+
 	err := h.customerService.Create(c.Context(), request)
 	if err != nil {
 		return responses.NewErrorResponse(c, fiber.ErrInternalServerError.Code, fiber.ErrInternalServerError.Message, err)
@@ -127,6 +132,10 @@ func (h *CustomerHandler) Update(c fiber.Ctx) error {
 		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, err)
 	}
 
+	if err := h.validator.Struct(&request); err != nil {
+		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, validator_utils.FormatValidationErrors(err))
+	}
+
 	err = h.customerService.Update(c.Context(), idUUID, request)
 	if err != nil {
 		return responses.NewErrorResponse(c, fiber.ErrInternalServerError.Code, fiber.ErrInternalServerError.Message, err)
@@ -136,5 +145,20 @@ func (h *CustomerHandler) Update(c fiber.Ctx) error {
 }
 
 func (h *CustomerHandler) Delete(c fiber.Ctx) error {
+	id := c.Params("id", "")
+	if id == "" {
+		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, nil)
+	}
 
+	idUUID, err := uuid.Parse(id)
+	if err != nil {
+		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, err)
+	}
+
+	err = h.customerService.Delete(c.Context(), idUUID)
+	if err != nil {
+		return responses.NewErrorResponse(c, fiber.ErrInternalServerError.Code, fiber.ErrInternalServerError.Message, err)
+	}
+
+	return responses.NewSuccessResponse(c, fiber.StatusOK, "Customer deleted successfully", nil)
 }

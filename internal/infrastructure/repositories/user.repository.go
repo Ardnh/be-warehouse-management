@@ -22,8 +22,39 @@ func NewUserRepository(db *gorm.DB, redis *redis.Client) repositories.UserReposi
 	}
 }
 
-func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*entity.User, error)
-func (r *UserRepositoryImpl) GetByID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
-func (r *UserRepositoryImpl) Create(ctx context.Context, user entity.User) error
-func (r *UserRepositoryImpl) Update(ctx context.Context, user entity.User) error
-func (r *UserRepositoryImpl) Delete(ctx context.Context, userID uuid.UUID) error
+func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
+	var user entity.User
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepositoryImpl) GetByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
+	var user entity.User
+	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepositoryImpl) Create(ctx context.Context, user entity.User) error {
+	if err := r.db.Create(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *UserRepositoryImpl) Update(ctx context.Context, user entity.User) error {
+	if err := r.db.Save(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *UserRepositoryImpl) Delete(ctx context.Context, userID uuid.UUID) error {
+	if err := r.db.Delete(&entity.User{}, userID).Error; err != nil {
+		return err
+	}
+	return nil
+}

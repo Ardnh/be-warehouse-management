@@ -7,6 +7,17 @@ import (
 	"github.com/google/uuid"
 )
 
+type CreateUomRequest struct {
+	Code string `json:"code" validate:"required,max=20"`
+	Name string `json:"name" validate:"required,max=100"`
+	Type string `json:"type" validate:"required,max=20"`
+}
+
+type UpdateUomRequest struct {
+	Name *string `json:"name" validate:"omitempty,max=100"`
+	Type *string `json:"type" validate:"omitempty,max=20"`
+}
+
 type Uom struct {
 	ID        uuid.UUID `json:"id"`
 	Code      string    `json:"code"`
