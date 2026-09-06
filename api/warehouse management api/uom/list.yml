@@ -1,0 +1,8 @@
+info:
+  name: list UOMs
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{base_url}}/uom/?page=1&page_size=30&search="
+  auth: inherit

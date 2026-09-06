@@ -1,0 +1,18 @@
+info:
+  name: create zone
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: "{{base_url}}/zone/"
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "warehouse_id": "00000000-0000-0000-0000-000000000000",
+        "code": "STORAGE-A",
+        "name": "Storage zone A",
+        "type": "STORAGE",
+        "status": "ACTIVE"
+      }

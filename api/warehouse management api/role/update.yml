@@ -1,0 +1,20 @@
+info:
+  name: update role
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/role/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Updated role",
+        "description": "Updated description",
+        "status": "ACTIVE"
+      }

@@ -1,0 +1,12 @@
+info:
+  name: delete product
+  type: http
+  seq: 5
+http:
+  method: DELETE
+  url: "{{base_url}}/product/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit

@@ -1,0 +1,8 @@
+info:
+  name: list roles
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{base_url}}/role/?page=1&page_size=30&search="
+  auth: inherit

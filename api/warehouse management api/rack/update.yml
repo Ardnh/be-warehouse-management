@@ -1,0 +1,21 @@
+info:
+  name: update rack
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/rack/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "bay_count": 12,
+        "level_count": 6,
+        "pallet_capacity": 600,
+        "status": "ACTIVE"
+      }

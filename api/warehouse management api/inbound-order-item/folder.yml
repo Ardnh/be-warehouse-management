@@ -1,0 +1,6 @@
+info:
+  name: inbound order item
+  type: folder
+  seq: 10
+request:
+  auth: inherit

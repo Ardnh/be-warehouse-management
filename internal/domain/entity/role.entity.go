@@ -26,3 +26,7 @@ func (r *Role) BeforeCreate(tx *gorm.DB) error {
 	}
 	return nil
 }
+
+func (Role) TableName() string {
+	return "roles"
+}

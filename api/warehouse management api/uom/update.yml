@@ -1,0 +1,19 @@
+info:
+  name: update UOM
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/uom/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Updated pieces",
+        "type": "COUNT"
+      }

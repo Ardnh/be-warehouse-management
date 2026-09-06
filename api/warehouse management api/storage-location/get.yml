@@ -1,0 +1,12 @@
+info:
+  name: get storage location
+  type: http
+  seq: 2
+http:
+  method: GET
+  url: "{{base_url}}/storage-location/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit

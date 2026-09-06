@@ -1,0 +1,12 @@
+info:
+  name: delete storage location
+  type: http
+  seq: 5
+http:
+  method: DELETE
+  url: "{{base_url}}/storage-location/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit

@@ -1,0 +1,21 @@
+info:
+  name: update handling unit item
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/handling-unit/:id/item/:item_id"
+  params:
+    - name: id
+      value: ""
+      type: path
+    - name: item_id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "quantity": 20
+      }

@@ -1,0 +1,20 @@
+info:
+  name: update zone
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/zone/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Updated storage zone",
+        "type": "STORAGE",
+        "status": "ACTIVE"
+      }

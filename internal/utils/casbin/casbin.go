@@ -7,42 +7,70 @@ import (
 )
 
 func InitCasbin(modelPath string, db *gorm.DB) (*casbin.Enforcer, error) {
-	// Buat adapter dari koneksi GORM yang sudah ada
 	adapter, err := gormadapter.NewAdapterByDB(db)
 	if err != nil {
 		return nil, err
 	}
 
-	// Buat enforcer dengan model dan adapter
 	enforcer, err := casbin.NewEnforcer(modelPath, adapter)
 	if err != nil {
 		return nil, err
 	}
 
-	// Load policy dari database
-	err = enforcer.LoadPolicy()
-	if err != nil {
+	if err := enforcer.LoadPolicy(); err != nil {
 		return nil, err
 	}
 
 	return enforcer, nil
 }
 
-func GetUserPermissions(enforcer *casbin.Enforcer, userID string) []string {
-	permissions, _ := enforcer.GetImplicitPermissionsForUser(userID)
+func GetUserPermissions(
+	enforcer *casbin.Enforcer,
+	userID string,
+	warehouseID string,
+) []string {
+	permissions, err := enforcer.GetImplicitPermissionsForUser(
+		userID,
+		warehouseID,
+	)
+
+	if err != nil {
+		return []string{}
+	}
+
 	seen := make(map[string]bool)
 	result := []string{}
+
 	for _, p := range permissions {
-		perm := p[1] + ":" + p[2]
+		// p = [subject, domain, object, action]
+		if len(p) < 4 {
+			continue
+		}
+
+		perm := p[2] + ":" + p[3]
+
 		if !seen[perm] {
 			seen[perm] = true
 			result = append(result, perm)
 		}
 	}
+
 	return result
 }
 
-func GetUserRoles(enforcer *casbin.Enforcer, userID string) []string {
-	roles, _ := enforcer.GetRolesForUser(userID)
+func GetUserRoles(
+	enforcer *casbin.Enforcer,
+	userID string,
+	warehouseID string,
+) []string {
+	roles, err := enforcer.GetRolesForUser(
+		userID,
+		warehouseID,
+	)
+
+	if err != nil {
+		return []string{}
+	}
+
 	return roles
 }

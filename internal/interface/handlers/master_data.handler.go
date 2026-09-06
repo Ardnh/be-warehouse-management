@@ -26,8 +26,10 @@ func masterFilter(c fiber.Ctx) (dto.FilterDTO, error) {
 	return dto.FilterDTO{Page: page, Size: size, Search: c.Query("search"), SortBy: c.Query("sort_by", "created_at"), SortDir: c.Query("sort_dir", "asc")}, nil
 }
 
-func masterID(c fiber.Ctx) (uuid.UUID, error) {
-	id := c.Params("id")
+func masterID(c fiber.Ctx) (uuid.UUID, error) { return masterParamID(c, "id") }
+
+func masterParamID(c fiber.Ctx, name string) (uuid.UUID, error) {
+	id := c.Params(name)
 	if id == "" {
 		return uuid.Nil, fiber.ErrBadRequest
 	}

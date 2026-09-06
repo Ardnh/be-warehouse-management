@@ -1,0 +1,8 @@
+info:
+  name: list products
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{base_url}}/product/?page=1&page_size=30&search="
+  auth: inherit

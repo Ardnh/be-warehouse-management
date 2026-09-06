@@ -1,0 +1,19 @@
+info:
+  name: create storage location
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: "{{base_url}}/storage-location/"
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "rack_id": "00000000-0000-0000-0000-000000000000",
+        "code": "A01-B01-L01",
+        "bay": 1,
+        "level": 1,
+        "capacity": 100,
+        "status": "ACTIVE"
+      }

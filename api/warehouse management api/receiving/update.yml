@@ -1,0 +1,19 @@
+info:
+  name: update receiving
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/receiving/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "status": "completed",
+        "notes": "Verified receiving"
+      }

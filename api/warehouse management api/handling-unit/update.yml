@@ -1,0 +1,18 @@
+info:
+  name: update handling unit
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/handling-unit/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "status": "IN_USE"
+      }

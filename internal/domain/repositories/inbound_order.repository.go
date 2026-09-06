@@ -8,9 +8,9 @@ import (
 )
 
 type InboundOrderRepository interface {
-	FindAll(ctx context.Context) ([]entity.InboundOrder, error)
-	FindByID(ctx context.Context, id uuid.UUID) (entity.InboundOrder, error)
+	FindAll(ctx context.Context, filter Filter) ([]entity.InboundOrder, int64, error)
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.InboundOrder, error)
 	Create(ctx context.Context, order entity.InboundOrder) error
-	Update(ctx context.Context, order entity.InboundOrder) error
-	Delete(ctx context.Context, order entity.InboundOrder) error
+	Update(ctx context.Context, order *entity.InboundOrder) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }

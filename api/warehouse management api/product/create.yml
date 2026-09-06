@@ -1,0 +1,19 @@
+info:
+  name: create product
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: "{{base_url}}/product/"
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "customer_id": "00000000-0000-0000-0000-000000000000",
+        "sku": "SKU-001",
+        "name": "Sample product",
+        "uom_id": "00000000-0000-0000-0000-000000000000",
+        "barcode": "1234567890",
+        "status": "active"
+      }

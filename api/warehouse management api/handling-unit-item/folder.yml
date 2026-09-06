@@ -1,0 +1,6 @@
+info:
+  name: handling unit item
+  type: folder
+  seq: 12
+request:
+  auth: inherit

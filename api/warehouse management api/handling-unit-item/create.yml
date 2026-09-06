@@ -1,0 +1,19 @@
+info:
+  name: create handling unit item
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: "{{base_url}}/handling-unit/:id/item/"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "product_id": "00000000-0000-0000-0000-000000000000",
+        "quantity": 10
+      }

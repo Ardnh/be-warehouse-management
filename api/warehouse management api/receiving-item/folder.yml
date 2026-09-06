@@ -1,0 +1,6 @@
+info:
+  name: receiving item
+  type: folder
+  seq: 16
+request:
+  auth: inherit

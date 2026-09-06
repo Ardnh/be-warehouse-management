@@ -1,0 +1,19 @@
+info:
+  name: create rack
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: "{{base_url}}/rack/"
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "zone_id": "00000000-0000-0000-0000-000000000000",
+        "code": "RACK-A01",
+        "bay_count": 10,
+        "level_count": 5,
+        "pallet_capacity": 500,
+        "status": "ACTIVE"
+      }

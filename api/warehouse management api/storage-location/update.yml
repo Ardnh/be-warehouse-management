@@ -1,0 +1,19 @@
+info:
+  name: update storage location
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/storage-location/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "capacity": 120,
+        "status": "ACTIVE"
+      }

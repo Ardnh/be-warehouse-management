@@ -1,0 +1,19 @@
+info:
+  name: update inbound order status
+  type: http
+  seq: 5
+http:
+  method: PATCH
+  url: "{{base_url}}/inbound-order/:id/status"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "status": "OPEN",
+        "notes": "Ready for receiving"
+      }

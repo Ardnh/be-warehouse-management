@@ -1,0 +1,20 @@
+info:
+  name: update warehouse
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/warehouse/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Updated warehouse",
+        "address": "Updated address",
+        "status": "ACTIVE"
+      }

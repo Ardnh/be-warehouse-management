@@ -1,0 +1,17 @@
+info:
+  name: create warehouse
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: "{{base_url}}/warehouse/"
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "code": "WH-001",
+        "name": "Main warehouse",
+        "address": "Warehouse address",
+        "status": "ACTIVE"
+      }

@@ -1,0 +1,20 @@
+info:
+  name: create receiving item
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: "{{base_url}}/receiving/:id/item/"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "inbound_order_item_id": "00000000-0000-0000-0000-000000000000",
+        "product_id": "00000000-0000-0000-0000-000000000000",
+        "received_qty": 100
+      }

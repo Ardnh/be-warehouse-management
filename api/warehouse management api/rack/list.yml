@@ -1,0 +1,8 @@
+info:
+  name: list racks
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{base_url}}/rack/?page=1&page_size=30&search="
+  auth: inherit

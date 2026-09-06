@@ -1,0 +1,22 @@
+info:
+  name: update inbound order item
+  type: http
+  seq: 4
+http:
+  method: PUT
+  url: "{{base_url}}/inbound-order/:id/item/:item_id"
+  params:
+    - name: id
+      value: ""
+      type: path
+    - name: item_id
+      value: ""
+      type: path
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "product_id": "00000000-0000-0000-0000-000000000000",
+        "expected_qty": 120
+      }

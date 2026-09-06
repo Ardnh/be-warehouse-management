@@ -1,0 +1,12 @@
+info:
+  name: delete role
+  type: http
+  seq: 5
+http:
+  method: DELETE
+  url: "{{base_url}}/role/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit

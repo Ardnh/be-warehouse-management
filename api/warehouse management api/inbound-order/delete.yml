@@ -1,0 +1,12 @@
+info:
+  name: delete inbound order
+  type: http
+  seq: 6
+http:
+  method: DELETE
+  url: "{{base_url}}/inbound-order/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth: inherit
