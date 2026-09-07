@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
@@ -11,8 +14,10 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/database/postgresql"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/database/redis"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/repositories"
-	"github.com/Ardnh/be-warehouse-management/internal/interface/handlers"
-	"github.com/Ardnh/be-warehouse-management/internal/interface/routes"
+	seeder "github.com/Ardnh/be-warehouse-management/internal/infrastructure/seeder"
+	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
+	"github.com/Ardnh/be-warehouse-management/internal/interfaces/routes"
+	"github.com/Ardnh/be-warehouse-management/internal/utils/casbin"
 )
 
 func main() {
@@ -21,6 +26,12 @@ func main() {
 	log := logrus.New()
 	cfg := config.LoadConfig()
 	validator := validator.New()
+
+	workDir, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Failed to get working directory:", err)
+	}
+	modelPath := filepath.Join(workDir, "internal/utils/casbin", "model.conf")
 
 	// Initialize database
 	db, err := postgresql.NewPostgresDB(cfg)
@@ -32,8 +43,17 @@ func main() {
 	redisDb := redis.NewRedisDB(cfg)
 	defer redisDb.Close()
 
+	// Seeder
+	if err := seeder.SeedPermissions(db); err != nil {
+		log.Fatalf("❌ Failed to seed permissions: %v", err)
+	}
+
 	// Casbin
-	// enforcer, err := utils.InitCasbin(modelPath, db)
+	enforcer, err := casbin.InitCasbin(modelPath, db)
+	if err != nil {
+		log.Fatalf("❌ Failed to initialize Casbin: %v", err)
+	}
+	defer enforcer.SavePolicy()
 
 	// Modules
 	// Repository

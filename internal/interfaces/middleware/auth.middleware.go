@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Ardnh/be-warehouse-management/internal/config"
-	http "github.com/Ardnh/be-warehouse-management/internal/interface/response"
+	http "github.com/Ardnh/be-warehouse-management/internal/interfaces/response"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 )

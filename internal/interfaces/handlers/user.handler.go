@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/Ardnh/be-warehouse-management/internal/application/dto"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/services"
-	responses "github.com/Ardnh/be-warehouse-management/internal/interface/response"
+	responses "github.com/Ardnh/be-warehouse-management/internal/interfaces/response"
 	validator_utils "github.com/Ardnh/be-warehouse-management/internal/utils/validator"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -25,7 +25,7 @@ func NewUserHandler(userService services.UserService, validator *validator.Valid
 	}
 }
 
-func (h *UserHandler) findByID(c fiber.Ctx) error {
+func (h *UserHandler) FindByID(c fiber.Ctx) error {
 	userID := c.Params("id", "")
 
 	if userID == "" {
@@ -49,7 +49,7 @@ func (h *UserHandler) findByID(c fiber.Ctx) error {
 	return responses.NewSuccessResponse(c, fiber.StatusOK, "User found", user)
 }
 
-func (h *UserHandler) create(c fiber.Ctx) error {
+func (h *UserHandler) Create(c fiber.Ctx) error {
 
 	var request dto.CreateUserRequest
 	if err := c.Bind().Body(&request); err != nil {
@@ -68,7 +68,7 @@ func (h *UserHandler) create(c fiber.Ctx) error {
 	return responses.NewSuccessResponse(c, fiber.StatusOK, "User created", nil)
 }
 
-func (h *UserHandler) update(c fiber.Ctx) error {
+func (h *UserHandler) Update(c fiber.Ctx) error {
 	userID := c.Params("id", "")
 
 	if userID == "" {
@@ -97,7 +97,7 @@ func (h *UserHandler) update(c fiber.Ctx) error {
 	return responses.NewSuccessResponse(c, fiber.StatusOK, "User updated", nil)
 }
 
-func (h *UserHandler) delete(c fiber.Ctx) error {
+func (h *UserHandler) Delete(c fiber.Ctx) error {
 	userID := c.Params("id", "")
 
 	if userID == "" {

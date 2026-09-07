@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/Ardnh/be-warehouse-management/internal/application/dto"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/services"
-	responses "github.com/Ardnh/be-warehouse-management/internal/interface/response"
+	responses "github.com/Ardnh/be-warehouse-management/internal/interfaces/response"
 	vu "github.com/Ardnh/be-warehouse-management/internal/utils/validator"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
