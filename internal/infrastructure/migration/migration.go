@@ -15,6 +15,8 @@ func Migrate(db *gorm.DB) error {
 		&entity.User{},
 		&entity.Role{},
 		&entity.UserRole{},
+		&entity.Permission{},
+		&entity.UserPermission{},
 
 		// Master data
 		&entity.Customer{},

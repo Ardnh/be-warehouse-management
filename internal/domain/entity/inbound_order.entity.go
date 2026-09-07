@@ -39,6 +39,7 @@ func (s InboundOrderStatus) IsFinal() bool {
 
 type InboundOrder struct {
 	ID                uuid.UUID          `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	WarehouseID       uuid.UUID          `gorm:"type:uuid;not null;index"`
 	CustomerID        uuid.UUID          `gorm:"type:uuid;not null;index"`
 	OrderNumber       string             `gorm:"type:varchar(50);not null;uniqueIndex"`
 	Status            InboundOrderStatus `gorm:"type:varchar(30);not null;index;default:'DRAFT'"`
@@ -50,6 +51,7 @@ type InboundOrder struct {
 	Customer   *Customer          `gorm:"foreignKey:CustomerID"`
 	Items      []InboundOrderItem `gorm:"foreignKey:InboundOrderID"`
 	Receivings []Receiving        `gorm:"foreignKey:InboundOrderID"`
+	Warehouse  *Warehouse         `gorm:"foreignKey:WarehouseID"`
 }
 
 func (InboundOrder) TableName() string { return "inbound_orders" }

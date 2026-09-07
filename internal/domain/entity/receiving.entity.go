@@ -9,6 +9,7 @@ import (
 
 type Receiving struct {
 	ID              uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	WarehouseID     uuid.UUID  `gorm:"type:uuid;not null;index"`
 	InboundOrderID  uuid.UUID  `gorm:"type:uuid;not null;index"`
 	ReceivingNumber string     `gorm:"type:varchar(50);not null;uniqueIndex"`
 	Status          string     `gorm:"type:varchar(30);not null"`
@@ -21,6 +22,7 @@ type Receiving struct {
 	InboundOrder *InboundOrder   `gorm:"foreignKey:InboundOrderID"`
 	Receiver     *User           `gorm:"foreignKey:ReceivedBy"`
 	Items        []ReceivingItem `gorm:"foreignKey:ReceivingID"`
+	Warehouse    *Warehouse      `gorm:"foreignKey:WarehouseID"`
 }
 
 func (Receiving) TableName() string { return "receivings" }
