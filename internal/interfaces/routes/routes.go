@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"github.com/Ardnh/be-warehouse-management/internal/interface/handlers"
-	"github.com/Ardnh/be-warehouse-management/internal/interface/middleware"
+	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
+	"github.com/Ardnh/be-warehouse-management/internal/interfaces/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/sirupsen/logrus"

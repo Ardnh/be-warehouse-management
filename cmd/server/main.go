@@ -11,8 +11,8 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/database/postgresql"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/database/redis"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/repositories"
-	"github.com/Ardnh/be-warehouse-management/internal/interface/handlers"
-	"github.com/Ardnh/be-warehouse-management/internal/interface/routes"
+	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
+	"github.com/Ardnh/be-warehouse-management/internal/interfaces/routes"
 )
 
 func main() {

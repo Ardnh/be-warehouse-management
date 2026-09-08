@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	http "github.com/Ardnh/be-warehouse-management/internal/interface/response"
+	http "github.com/Ardnh/be-warehouse-management/internal/interfaces/response"
 	"github.com/casbin/casbin/v3"
 	"github.com/gofiber/fiber/v3"
 	"github.com/sirupsen/logrus"
