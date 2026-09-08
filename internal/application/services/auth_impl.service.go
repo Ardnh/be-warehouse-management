@@ -31,17 +31,17 @@ func NewAuthService(userRepository repositories.UserRepository, log *logrus.Logg
 }
 
 func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*dto.LoginResponseDto, error) {
-	user, err := s.userRepository.GetByEmail(ctx, req.Email)
+	user, err := s.userRepository.GetByUsername(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, fiber.ErrNotFound) {
-			s.log.WithField("email", req.Email).Warn("login attempt with unregistered email")
+			s.log.WithField("username", req.Username).Warn("login attempt with unregistered username")
 			return nil, fiber.ErrUnauthorized
 		}
 		return nil, fiber.ErrInternalServerError
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		s.log.WithField("email", req.Email).Warn("invalid credentials provided")
+		s.log.WithField("username", req.Username).Warn("invalid credentials provided")
 		return nil, fiber.ErrUnauthorized
 	}
 

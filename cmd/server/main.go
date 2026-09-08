@@ -14,7 +14,6 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/database/postgresql"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/database/redis"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/repositories"
-	seeder "github.com/Ardnh/be-warehouse-management/internal/infrastructure/seeder"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/routes"
 	"github.com/Ardnh/be-warehouse-management/internal/utils/casbin"
@@ -43,11 +42,6 @@ func main() {
 	redisDb := redis.NewRedisDB(cfg)
 	defer redisDb.Close()
 
-	// Seeder
-	if err := seeder.SeedPermissions(db); err != nil {
-		log.Fatalf("❌ Failed to seed permissions: %v", err)
-	}
-
 	// Casbin
 	enforcer, err := casbin.InitCasbin(modelPath, db)
 	if err != nil {
@@ -72,6 +66,7 @@ func main() {
 	roleRepository := repositories.NewRoleRepository(db)
 	receivingRepository := repositories.NewReceivingRepository(db)
 	receivingItemRepository := repositories.NewReceivingItemRepository(db)
+	permissionRepository := repositories.NewPermissionRepository(db)
 
 	// Service
 	authService := services.NewAuthService(userRepository, log, cfg)
@@ -89,6 +84,7 @@ func main() {
 	roleService := services.NewRoleService(roleRepository, log)
 	receivingService := services.NewReceivingService(receivingRepository, receivingItemRepository, log)
 	receivingItemService := services.NewReceivingItemService(receivingItemRepository, log)
+	permissionService := services.NewPermissionService(permissionRepository, log)
 
 	// Handler
 	authHandler := handlers.NewAuthHandler(authService, validator, log)
@@ -106,8 +102,30 @@ func main() {
 	roleHandler := handlers.NewRoleHandler(roleService, validator, log)
 	receivingHandler := handlers.NewReceivingHandler(receivingService, validator, log)
 	receivingItemHandler := handlers.NewReceivingItemHandler(receivingItemService, validator, log)
+	permissionHandler := handlers.NewPermissionHandler(permissionService, validator, log)
 
-	routes.SetupAPIRoutes(app, log, validator, authHandler, customerHandler, warehouseHandler, uomHandler, zoneHandler, rackHandler, storageLocationHandler, inboundOrderHandler, inboundOrderItemHandler, handlingUnitHandler, handlingUnitItemHandler, productHandler, roleHandler, receivingHandler, receivingItemHandler)
+	routes.SetupAPIRoutes(
+		app,
+		log,
+		cfg,
+		validator,
+		authHandler,
+		customerHandler,
+		warehouseHandler,
+		uomHandler,
+		zoneHandler,
+		rackHandler,
+		storageLocationHandler,
+		inboundOrderHandler,
+		inboundOrderItemHandler,
+		handlingUnitHandler,
+		handlingUnitItemHandler,
+		productHandler,
+		roleHandler,
+		receivingHandler,
+		receivingItemHandler,
+		permissionHandler,
+	)
 
 	log.Fatal(app.Listen(":3000"))
 }

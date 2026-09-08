@@ -1,6 +1,7 @@
 package seeder
 
 import (
+	"errors"
 	"time"
 
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
@@ -9,38 +10,44 @@ import (
 )
 
 func SeedUser(db *gorm.DB) error {
+	return db.Transaction(func(tx *gorm.DB) error {
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123123"), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
+		// --- User ---
+		var user entity.User
+		err := tx.Where("username = ?", "system-admin").First(&user).Error
+		switch {
+		case err == nil:
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			hashed, hashErr := bcrypt.GenerateFromPassword([]byte("123123"), bcrypt.DefaultCost)
+			if hashErr != nil {
+				return hashErr
+			}
+			user = entity.User{
+				Username:     "system-admin",
+				Email:        "system-admin@example.com",
+				PasswordHash: string(hashed),
+				FullName:     "System Admin Uhuy",
+				Status:       "ACTIVE",
+				CreatedAt:    time.Now(),
+			}
+			if err := tx.Create(&user).Error; err != nil {
+				return err
+			}
+		default:
+			return err
+		}
 
-	// Create a user
-	user := entity.User{
-		Username:     "adam",
-		Email:        "adam@example.com",
-		PasswordHash: string(hashedPassword),
-		FullName:     "adam 1",
-		Status:       "ACTIVE",
-		CreatedAt:    time.Now(),
-	}
+		// --- Role ---
+		role := entity.Role{
+			Name:        "system-admin",
+			Code:        "SYSTEM_ADMIN",
+			Description: "System admin role",
+		}
+		if err := tx.Where("code = ?", "SYSTEM_ADMIN").
+			FirstOrCreate(&role, entity.Role{Code: "SYSTEM_ADMIN"}).Error; err != nil {
+			return err
+		}
 
-	result := db.Create(&user)
-
-	// Create a role
-	role := entity.Role{
-		Name:        "admin",
-		Code:        "ADMIN",
-		Description: "Admin role",
-	}
-	db.Create(&role)
-
-	// Create a user-role association
-	userRole := entity.UserRole{
-		UserID: user.ID,
-		RoleID: role.ID,
-	}
-	db.Create(&userRole)
-
-	return result.Error
+		return nil
+	})
 }

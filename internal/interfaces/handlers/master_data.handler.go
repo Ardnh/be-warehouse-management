@@ -23,7 +23,13 @@ func masterFilter(c fiber.Ctx) (dto.FilterDTO, error) {
 	if size <= 0 || size >= 1000 {
 		size = 30
 	}
-	return dto.FilterDTO{Page: page, Size: size, Search: c.Query("search"), SortBy: c.Query("sort_by", "created_at"), SortDir: c.Query("sort_dir", "asc")}, nil
+	return dto.FilterDTO{
+		Page:    page,
+		Size:    size,
+		Search:  c.Query("search"),
+		SortBy:  c.Query("sort_by", "resource"),
+		SortDir: c.Query("sort_dir", "asc"),
+	}, nil
 }
 
 func masterID(c fiber.Ctx) (uuid.UUID, error) { return masterParamID(c, "id") }

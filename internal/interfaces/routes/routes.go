@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/Ardnh/be-warehouse-management/internal/config"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/middleware"
 	"github.com/go-playground/validator/v10"
@@ -11,6 +12,7 @@ import (
 func SetupAPIRoutes(
 	app *fiber.App,
 	log *logrus.Logger,
+	cfg *config.Config,
 	// enforcer *casbin.Enforcer,
 	validator *validator.Validate,
 	authHandler *handlers.AuthHandler,
@@ -28,18 +30,18 @@ func SetupAPIRoutes(
 	roleHandler *handlers.RoleHandler,
 	receivingHandler *handlers.ReceivingHandler,
 	receivingItemHandler *handlers.ReceivingItemHandler,
+	permissionHandler *handlers.PermissionHandler,
 ) {
 	// Middleware
 	// casbinMw := middleware.NewCasbinMiddleware(enforcer, log)
-	authMiddleware := middleware.NewAuthMiddleware()
+	authMiddleware := middleware.NewAuthMiddleware(log, cfg)
 
 	// API v1 group
 	api := app.Group("/api/v1")
 
 	// Auth
-	user := api.Group("/user")
-	user.Post("/register", authHandler.Register)
-	user.Post("/login", authHandler.Login)
+	api.Post("/register", authHandler.Register)
+	api.Post("/login", authHandler.Login)
 
 	// Customer
 	customer := api.Group("/customer", authMiddleware.Authenticate())
@@ -146,10 +148,19 @@ func SetupAPIRoutes(
 	receiving.Put("/:id", receivingHandler.Update)
 	receiving.Delete("/:id", receivingHandler.Delete)
 
+	// Receiving Item
 	receivingItem := receiving.Group("/:id/item", authMiddleware.Authenticate())
 	receivingItem.Get("/", receivingItemHandler.FindAll)
 	receivingItem.Get("/:item_id", receivingItemHandler.FindByID)
 	receivingItem.Post("/", receivingItemHandler.Create)
 	receivingItem.Put("/:item_id", receivingItemHandler.Update)
 	receivingItem.Delete("/:item_id", receivingItemHandler.Delete)
+
+	// Permission
+	permission := api.Group("/permission", authMiddleware.Authenticate())
+	permission.Get("/", permissionHandler.FindAll)
+	permission.Get("/:id", permissionHandler.FindByID)
+	permission.Post("/", permissionHandler.Create)
+	permission.Put("/:id", permissionHandler.Update)
+	permission.Delete("/:id", permissionHandler.Delete)
 }
