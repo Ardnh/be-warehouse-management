@@ -1,0 +1,22 @@
+info:
+  name: list permission
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{base_url}}/permission?page=1&page_size=10"
+  params:
+    - name: page
+      value: "1"
+      type: query
+    - name: page_size
+      value: "10"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

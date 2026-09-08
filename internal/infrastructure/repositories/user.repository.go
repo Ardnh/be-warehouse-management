@@ -30,6 +30,14 @@ func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*ent
 	return &user, nil
 }
 
+func (r *UserRepositoryImpl) GetByUsername(ctx context.Context, username string) (*entity.User, error) {
+	var user entity.User
+	if err := r.db.Where("username = ?", username).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *UserRepositoryImpl) GetByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
 	var user entity.User
 	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {

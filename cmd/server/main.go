@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
@@ -13,6 +16,10 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/repositories"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/routes"
+<<<<<<< HEAD
+=======
+	"github.com/Ardnh/be-warehouse-management/internal/utils/casbin"
+>>>>>>> 31ecdeb116ea189c9966cc3c9323c276205d0ff6
 )
 
 func main() {
@@ -21,6 +28,12 @@ func main() {
 	log := logrus.New()
 	cfg := config.LoadConfig()
 	validator := validator.New()
+
+	workDir, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Failed to get working directory:", err)
+	}
+	modelPath := filepath.Join(workDir, "internal/utils/casbin", "model.conf")
 
 	// Initialize database
 	db, err := postgresql.NewPostgresDB(cfg)
@@ -33,7 +46,11 @@ func main() {
 	defer redisDb.Close()
 
 	// Casbin
-	// enforcer, err := utils.InitCasbin(modelPath, db)
+	enforcer, err := casbin.InitCasbin(modelPath, db)
+	if err != nil {
+		log.Fatalf("❌ Failed to initialize Casbin: %v", err)
+	}
+	defer enforcer.SavePolicy()
 
 	// Modules
 	// Repository
@@ -52,6 +69,7 @@ func main() {
 	roleRepository := repositories.NewRoleRepository(db)
 	receivingRepository := repositories.NewReceivingRepository(db)
 	receivingItemRepository := repositories.NewReceivingItemRepository(db)
+	permissionRepository := repositories.NewPermissionRepository(db)
 
 	// Service
 	authService := services.NewAuthService(userRepository, log, cfg)
@@ -69,6 +87,7 @@ func main() {
 	roleService := services.NewRoleService(roleRepository, log)
 	receivingService := services.NewReceivingService(receivingRepository, receivingItemRepository, log)
 	receivingItemService := services.NewReceivingItemService(receivingItemRepository, log)
+	permissionService := services.NewPermissionService(permissionRepository, log)
 
 	// Handler
 	authHandler := handlers.NewAuthHandler(authService, validator, log)
@@ -86,8 +105,30 @@ func main() {
 	roleHandler := handlers.NewRoleHandler(roleService, validator, log)
 	receivingHandler := handlers.NewReceivingHandler(receivingService, validator, log)
 	receivingItemHandler := handlers.NewReceivingItemHandler(receivingItemService, validator, log)
+	permissionHandler := handlers.NewPermissionHandler(permissionService, validator, log)
 
-	routes.SetupAPIRoutes(app, log, validator, authHandler, customerHandler, warehouseHandler, uomHandler, zoneHandler, rackHandler, storageLocationHandler, inboundOrderHandler, inboundOrderItemHandler, handlingUnitHandler, handlingUnitItemHandler, productHandler, roleHandler, receivingHandler, receivingItemHandler)
+	routes.SetupAPIRoutes(
+		app,
+		log,
+		cfg,
+		validator,
+		authHandler,
+		customerHandler,
+		warehouseHandler,
+		uomHandler,
+		zoneHandler,
+		rackHandler,
+		storageLocationHandler,
+		inboundOrderHandler,
+		inboundOrderItemHandler,
+		handlingUnitHandler,
+		handlingUnitItemHandler,
+		productHandler,
+		roleHandler,
+		receivingHandler,
+		receivingItemHandler,
+		permissionHandler,
+	)
 
 	log.Fatal(app.Listen(":3000"))
 }

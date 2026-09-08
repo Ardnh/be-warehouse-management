@@ -4,9 +4,15 @@ info:
   seq: 1
 
 http:
-  method: GET
-  url: ""
-  auth: inherit
+  method: POST
+  url: "{{base_url}}/login"
+  body:
+    type: json
+    data: |-
+      {
+        "username": "system-admin",
+        "password": "123123"
+      }
 
 runtime:
   scripts:

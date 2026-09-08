@@ -6,22 +6,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitCasbin(modelPath string, db *gorm.DB) (*casbin.Enforcer, error) {
+func InitCasbin(modelPath string, db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 	adapter, err := gormadapter.NewAdapterByDB(db)
 	if err != nil {
 		return nil, err
 	}
-
-	enforcer, err := casbin.NewEnforcer(modelPath, adapter)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := enforcer.LoadPolicy(); err != nil {
-		return nil, err
-	}
-
-	return enforcer, nil
+	return casbin.NewSyncedEnforcer(modelPath, adapter)
 }
 
 func GetUserPermissions(
