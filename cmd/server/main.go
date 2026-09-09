@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/database/redis"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/repositories"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
+	"github.com/Ardnh/be-warehouse-management/internal/interfaces/middleware"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/routes"
 	"github.com/Ardnh/be-warehouse-management/internal/utils/casbin"
 )
@@ -48,6 +50,16 @@ func main() {
 		log.Fatalf("❌ Failed to initialize Casbin: %v", err)
 	}
 	defer enforcer.SavePolicy()
+
+	requestTimer := middleware.NewRequestTimerMiddleware(log)
+	app.Use(requestTimer.Track())
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	// Modules
 	// Repository
@@ -127,5 +139,5 @@ func main() {
 		permissionHandler,
 	)
 
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":8080"))
 }
