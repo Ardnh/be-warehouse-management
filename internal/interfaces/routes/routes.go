@@ -31,6 +31,7 @@ func SetupAPIRoutes(
 	receivingHandler *handlers.ReceivingHandler,
 	receivingItemHandler *handlers.ReceivingItemHandler,
 	permissionHandler *handlers.PermissionHandler,
+	userHandler *handlers.UserHandler,
 ) {
 	// Middleware
 	// casbinMw := middleware.NewCasbinMiddleware(enforcer, log)
@@ -42,6 +43,14 @@ func SetupAPIRoutes(
 	// Auth
 	api.Post("/register", authHandler.Register)
 	api.Post("/login", authHandler.Login)
+
+	// User
+	user := api.Group("/user", authMiddleware.Authenticate())
+	user.Get("/", userHandler.FindAll)
+	user.Get("/:id", userHandler.FindByID)
+	user.Post("/", userHandler.Create)
+	user.Put("/:id", userHandler.Update)
+	user.Delete("/:id", userHandler.Delete)
 
 	// Customer
 	customer := api.Group("/customer", authMiddleware.Authenticate())

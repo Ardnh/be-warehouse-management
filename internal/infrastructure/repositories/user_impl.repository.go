@@ -22,7 +22,25 @@ func NewUserRepository(db *gorm.DB, redis *redis.Client) repositories.UserReposi
 	}
 }
 
-func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (r *UserRepositoryImpl) FindAll(ctx context.Context, filter repositories.Filter) ([]*entity.User, int64, error) {
+	var users []*entity.User
+	var total int64
+
+	base := r.db.WithContext(ctx).Model(&entity.User{})
+	if filter.Search != "" {
+		base = base.Where("username ILIKE ? OR email ILIKE ?", "%"+filter.Search+"%", "%"+filter.Search+"%")
+	}
+	if err := base.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	base = applyMasterListFilter(base, filter)
+	if err := base.Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+	return users, total, nil
+}
+
+func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
 	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
@@ -30,7 +48,7 @@ func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*ent
 	return &user, nil
 }
 
-func (r *UserRepositoryImpl) GetByUsername(ctx context.Context, username string) (*entity.User, error) {
+func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string) (*entity.User, error) {
 	var user entity.User
 	if err := r.db.Where("username = ?", username).First(&user).Error; err != nil {
 		return nil, err
@@ -38,7 +56,7 @@ func (r *UserRepositoryImpl) GetByUsername(ctx context.Context, username string)
 	return &user, nil
 }
 
-func (r *UserRepositoryImpl) GetByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
+func (r *UserRepositoryImpl) FindByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
 	var user entity.User
 	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, err

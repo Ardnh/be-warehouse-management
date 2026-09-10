@@ -31,7 +31,7 @@ func NewAuthService(userRepository repositories.UserRepository, log *logrus.Logg
 }
 
 func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*dto.LoginResponseDto, error) {
-	user, err := s.userRepository.GetByUsername(ctx, req.Username)
+	user, err := s.userRepository.FindByUsername(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, fiber.ErrNotFound) {
 			s.log.WithField("username", req.Username).Warn("login attempt with unregistered username")
@@ -64,7 +64,7 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*
 }
 
 func (s *AuthServiceImpl) Register(ctx context.Context, req dto.RegisterRequestDto) error {
-	existingUser, err := s.userRepository.GetByEmail(ctx, req.Email)
+	existingUser, err := s.userRepository.FindByEmail(ctx, req.Email)
 	if err != nil && !errors.Is(err, fiber.ErrNotFound) {
 		s.log.WithFields(logrus.Fields{
 			"email": req.Email,

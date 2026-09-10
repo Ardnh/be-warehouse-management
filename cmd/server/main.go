@@ -82,6 +82,7 @@ func main() {
 
 	// Service
 	authService := services.NewAuthService(userRepository, log, cfg)
+	userService := services.NewUserService(userRepository, log)
 	customerService := services.NewCustomerService(customerRepository, log)
 	warehouseService := services.NewWarehouseService(warehouseRepository, log)
 	uomService := services.NewUomService(uomRepository, log)
@@ -100,6 +101,7 @@ func main() {
 
 	// Handler
 	authHandler := handlers.NewAuthHandler(authService, validator, log)
+	userHandler := handlers.NewUserHandler(userService, validator, log)
 	customerHandler := handlers.NewCustomerHandler(customerService, validator, log)
 	warehouseHandler := handlers.NewWarehouseHandler(warehouseService, validator, log)
 	uomHandler := handlers.NewUomHandler(uomService, validator, log)
@@ -137,6 +139,7 @@ func main() {
 		receivingHandler,
 		receivingItemHandler,
 		permissionHandler,
+		userHandler,
 	)
 
 	log.Fatal(app.Listen(":8080"))

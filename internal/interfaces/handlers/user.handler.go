@@ -25,6 +25,18 @@ func NewUserHandler(userService services.UserService, validator *validator.Valid
 	}
 }
 
+func (h *UserHandler) FindAll(c fiber.Ctx) error {
+	filter, err := masterFilter(c)
+	if err != nil {
+		return responses.HandleError(c, err)
+	}
+	result, total, err := h.UserService.FindAll(c.Context(), filter)
+	if err != nil {
+		return responses.HandleError(c, err)
+	}
+	return responses.NewSuccessResponseWithPagination(c, fiber.StatusOK, "Users retrieved successfully", result, dto.NewPagination(filter, total))
+}
+
 func (h *UserHandler) FindByID(c fiber.Ctx) error {
 	userID := c.Params("id", "")
 
