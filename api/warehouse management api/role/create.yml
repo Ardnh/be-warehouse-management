@@ -2,10 +2,10 @@ info:
   name: create role
   type: http
   seq: 3
+
 http:
   method: POST
   url: "{{base_url}}/role/"
-  auth: inherit
   body:
     type: json
     data: |-
@@ -15,3 +15,11 @@ http:
         "description": "Warehouse operations role",
         "status": "ACTIVE"
       }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

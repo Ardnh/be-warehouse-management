@@ -3,4 +3,4 @@ variables:
   - secret: true
     name: token
   - name: base_url
-    value: http://127.0.0.1:3000/api/v1
+    value: http://127.0.0.1:8080/api/v1

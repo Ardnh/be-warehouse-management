@@ -37,7 +37,7 @@ type AssignRolesRequest struct {
 	RoleIDs []uuid.UUID `json:"role_ids" validate:"required,min=1,dive,required"`
 }
 
-type UserResponse struct {
+type User struct {
 	ID        uuid.UUID      `json:"id"`
 	Username  string         `json:"username"`
 	Email     string         `json:"email"`
@@ -48,8 +48,8 @@ type UserResponse struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 }
 
-func NewUserResponse(u entity.User) UserResponse {
-	res := UserResponse{
+func ToUserDTO(u *entity.User) User {
+	res := User{
 		ID:        u.ID,
 		Username:  u.Username,
 		Email:     u.Email,
@@ -64,10 +64,10 @@ func NewUserResponse(u entity.User) UserResponse {
 	return res
 }
 
-func NewUserResponses(users []entity.User) []UserResponse {
-	res := make([]UserResponse, 0, len(users))
+func ToUserDTOs(users []*entity.User) []User {
+	res := make([]User, 0, len(users))
 	for _, u := range users {
-		res = append(res, NewUserResponse(u))
+		res = append(res, ToUserDTO(u))
 	}
 	return res
 }

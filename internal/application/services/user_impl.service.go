@@ -23,20 +23,40 @@ func NewUserService(userRepository repositories.UserRepository, log *logrus.Logg
 	}
 }
 
-func (s *UserServiceImpl) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
-	user, err := s.UserRepository.GetByEmail(ctx, email)
-	if err != nil {
-		return nil, err
+func (s *UserServiceImpl) FindAll(ctx context.Context, filterDto dto.FilterDTO) ([]dto.User, int64, error) {
+	filter := repositories.Filter{
+		Search:   filterDto.Search,
+		Page:     filterDto.Page,
+		PageSize: filterDto.Size,
+		SortBy:   filterDto.SortBy,
+		SortDir:  filterDto.SortDir,
 	}
-	return user, nil
+	users, count, err := s.UserRepository.FindAll(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	userDtos := dto.ToUserDTOs(users)
+	return userDtos, count, nil
 }
 
-func (s *UserServiceImpl) FindByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
-	user, err := s.UserRepository.GetByID(ctx, userID)
+func (s *UserServiceImpl) FindByEmail(ctx context.Context, email string) (*dto.User, error) {
+	user, err := s.UserRepository.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+
+	userDto := dto.ToUserDTO(user)
+	return &userDto, nil
+}
+
+func (s *UserServiceImpl) FindByID(ctx context.Context, userID uuid.UUID) (*dto.User, error) {
+	user, err := s.UserRepository.FindByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	userDto := dto.ToUserDTO(user)
+	return &userDto, nil
 }
 
 func (s *UserServiceImpl) Create(ctx context.Context, user dto.CreateUserRequest) error {
@@ -56,7 +76,7 @@ func (s *UserServiceImpl) Create(ctx context.Context, user dto.CreateUserRequest
 
 func (s *UserServiceImpl) Update(ctx context.Context, id uuid.UUID, user dto.UpdateUserRequest) error {
 
-	userEntity, err := s.UserRepository.GetByID(ctx, id)
+	userEntity, err := s.UserRepository.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
