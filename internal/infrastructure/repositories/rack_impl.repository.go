@@ -14,10 +14,11 @@ type RackRepositoryImpl struct{ db *gorm.DB }
 func NewRackRepository(db *gorm.DB) domainrepositories.RackRepository {
 	return &RackRepositoryImpl{db: db}
 }
+
 func (r *RackRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]entity.Rack, int64, error) {
 	var items []entity.Rack
 	var total int64
-	base := r.db.WithContext(ctx).Model(&entity.Rack{}).Preload("Zone")
+	base := Conn(ctx, r.db).Model(&entity.Rack{}).Preload("Zone")
 	if filter.Search != "" {
 		base = base.Where("code ILIKE ?", "%"+filter.Search+"%")
 	}
@@ -30,19 +31,23 @@ func (r *RackRepositoryImpl) FindAll(ctx context.Context, filter domainrepositor
 	}
 	return items, total, nil
 }
+
 func (r *RackRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.Rack, error) {
 	var item entity.Rack
-	if err := r.db.WithContext(ctx).Preload("Zone").Preload("Locations").First(&item, id).Error; err != nil {
+	if err := Conn(ctx, r.db).Preload("Zone").Preload("Locations").First(&item, id).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
 }
+
 func (r *RackRepositoryImpl) Create(ctx context.Context, item entity.Rack) error {
-	return r.db.WithContext(ctx).Create(&item).Error
+	return Conn(ctx, r.db).Create(&item).Error
 }
+
 func (r *RackRepositoryImpl) Update(ctx context.Context, item *entity.Rack) error {
-	return r.db.WithContext(ctx).Save(item).Error
+	return Conn(ctx, r.db).Save(item).Error
 }
+
 func (r *RackRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&entity.Rack{}, id).Error
+	return Conn(ctx, r.db).Delete(&entity.Rack{}, id).Error
 }

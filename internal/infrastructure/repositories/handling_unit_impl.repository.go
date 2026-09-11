@@ -14,10 +14,11 @@ type HandlingUnitRepositoryImpl struct{ db *gorm.DB }
 func NewHandlingUnitRepository(db *gorm.DB) domainrepositories.HandlingUnitRepository {
 	return &HandlingUnitRepositoryImpl{db: db}
 }
+
 func (r *HandlingUnitRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]entity.HandlingUnit, int64, error) {
 	var list []entity.HandlingUnit
 	var total int64
-	q := r.db.WithContext(ctx).Model(&entity.HandlingUnit{}).Preload("Warehouse").Preload("Items").Preload("Items.Product")
+	q := Conn(ctx, r.db).Model(&entity.HandlingUnit{}).Preload("Warehouse").Preload("Items").Preload("Items.Product")
 	if filter.Search != "" {
 		q = q.Where("code ILIKE ?", "%"+filter.Search+"%")
 	}
@@ -30,19 +31,23 @@ func (r *HandlingUnitRepositoryImpl) FindAll(ctx context.Context, filter domainr
 	}
 	return list, total, nil
 }
+
 func (r *HandlingUnitRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.HandlingUnit, error) {
 	var item entity.HandlingUnit
-	if err := r.db.WithContext(ctx).Preload("Warehouse").Preload("Items").Preload("Items.Product").First(&item, id).Error; err != nil {
+	if err := Conn(ctx, r.db).Preload("Warehouse").Preload("Items").Preload("Items.Product").First(&item, id).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
 }
+
 func (r *HandlingUnitRepositoryImpl) Create(ctx context.Context, item entity.HandlingUnit) error {
-	return r.db.WithContext(ctx).Create(&item).Error
+	return Conn(ctx, r.db).Create(&item).Error
 }
+
 func (r *HandlingUnitRepositoryImpl) Update(ctx context.Context, item *entity.HandlingUnit) error {
-	return r.db.WithContext(ctx).Save(item).Error
+	return Conn(ctx, r.db).Save(item).Error
 }
+
 func (r *HandlingUnitRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&entity.HandlingUnit{}, id).Error
+	return Conn(ctx, r.db).Delete(&entity.HandlingUnit{}, id).Error
 }

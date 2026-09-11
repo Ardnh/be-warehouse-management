@@ -37,6 +37,29 @@ func (h *UserHandler) FindAll(c fiber.Ctx) error {
 	return responses.NewSuccessResponseWithPagination(c, fiber.StatusOK, "Users retrieved successfully", result, dto.NewPagination(filter, total))
 }
 
+func (h *UserHandler) GetProfile(c fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return responses.NewErrorResponse(c, fiber.StatusUnauthorized, "Unauthorized", "Invalid user identity")
+	}
+
+	userIDUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return responses.NewErrorResponse(c, fiber.StatusUnauthorized, "Unauthorized", "Invalid user identity")
+	}
+
+	user, err := h.UserService.FindByID(c.Context(), userIDUUID)
+	if err != nil {
+		return responses.HandleError(c, err)
+	}
+
+	if user == nil {
+		return responses.NewErrorResponse(c, fiber.ErrNotFound.Code, fiber.ErrNotFound.Message, "User not found")
+	}
+
+	return responses.NewSuccessResponse(c, fiber.StatusOK, "User profile retrieved successfully", user)
+}
+
 func (h *UserHandler) FindByID(c fiber.Ctx) error {
 	userID := c.Params("id", "")
 

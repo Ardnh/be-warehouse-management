@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
-	"github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
+	domainrepositories "github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -15,18 +15,15 @@ type UserRepositoryImpl struct {
 	redis *redis.Client
 }
 
-func NewUserRepository(db *gorm.DB, redis *redis.Client) repositories.UserRepository {
-	return &UserRepositoryImpl{
-		db:    db,
-		redis: redis,
-	}
+func NewUserRepository(db *gorm.DB, redis *redis.Client) domainrepositories.UserRepository {
+	return &UserRepositoryImpl{db: db, redis: redis}
 }
 
-func (r *UserRepositoryImpl) FindAll(ctx context.Context, filter repositories.Filter) ([]*entity.User, int64, error) {
+func (r *UserRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]*entity.User, int64, error) {
 	var users []*entity.User
 	var total int64
 
-	base := r.db.WithContext(ctx).Model(&entity.User{})
+	base := Conn(ctx, r.db).Model(&entity.User{})
 	if filter.Search != "" {
 		base = base.Where("username ILIKE ? OR email ILIKE ?", "%"+filter.Search+"%", "%"+filter.Search+"%")
 	}
@@ -42,7 +39,7 @@ func (r *UserRepositoryImpl) FindAll(ctx context.Context, filter repositories.Fi
 
 func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
-	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := Conn(ctx, r.db).Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -50,7 +47,7 @@ func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*en
 
 func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string) (*entity.User, error) {
 	var user entity.User
-	if err := r.db.Where("username = ?", username).First(&user).Error; err != nil {
+	if err := Conn(ctx, r.db).Where("username = ?", username).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -58,29 +55,26 @@ func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string
 
 func (r *UserRepositoryImpl) FindByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
 	var user entity.User
-	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
+	if err := Conn(ctx, r.db).
+		Preload("Roles").
+		Preload("UserRoles.Role").
+		Preload("UserRoles.Warehouse").
+		Preload("UserPermissions.Permission").
+		Where("id = ?", userID).
+		First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
 func (r *UserRepositoryImpl) Create(ctx context.Context, user entity.User) error {
-	if err := r.db.Create(&user).Error; err != nil {
-		return err
-	}
-	return nil
+	return Conn(ctx, r.db).Create(&user).Error
 }
 
 func (r *UserRepositoryImpl) Update(ctx context.Context, user entity.User) error {
-	if err := r.db.Save(&user).Error; err != nil {
-		return err
-	}
-	return nil
+	return Conn(ctx, r.db).Save(&user).Error
 }
 
 func (r *UserRepositoryImpl) Delete(ctx context.Context, userID uuid.UUID) error {
-	if err := r.db.Delete(&entity.User{}, userID).Error; err != nil {
-		return err
-	}
-	return nil
+	return Conn(ctx, r.db).Delete(&entity.User{}, userID).Error
 }

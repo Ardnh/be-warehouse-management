@@ -4,67 +4,51 @@ import (
 	"context"
 
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
-	"github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	domainrepositories "github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type PermissionRepositoryImpl struct {
-	db *gorm.DB
-}
+type PermissionRepositoryImpl struct{ db *gorm.DB }
 
-func NewPermissionRepository(db *gorm.DB) repositories.PermissionRepository {
-	return &PermissionRepositoryImpl{
-		db: db,
-	}
+func NewPermissionRepository(db *gorm.DB) domainrepositories.PermissionRepository {
+	return &PermissionRepositoryImpl{db: db}
 }
 
 func (r *PermissionRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]entity.Permission, int64, error) {
-
-	var x []entity.Permission
-	var t int64
-	q := r.db.WithContext(ctx).Model(&entity.Permission{})
+	var items []entity.Permission
+	var total int64
+	q := Conn(ctx, r.db).Model(&entity.Permission{})
 	if filter.Search != "" {
 		q = q.Where("resource ILIKE ? OR action ILIKE ?", "%"+filter.Search+"%", "%"+filter.Search+"%")
 	}
-	if e := q.Count(&t).Error; e != nil {
-		return nil, 0, e
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
-	if e := applyPermissionListFilter(q, filter, "resource", "action").Find(&x).Error; e != nil {
-		return nil, 0, e
+	if err := applyPermissionListFilter(q, filter, "resource", "action").Find(&items).Error; err != nil {
+		return nil, 0, err
 	}
-	return x, t, nil
-
+	return items, total, nil
 }
 
 func (r *PermissionRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.Permission, error) {
 	var permission entity.Permission
-	if e := r.db.WithContext(ctx).First(&permission, id).Error; e != nil {
-		return nil, e
+	if err := Conn(ctx, r.db).First(&permission, id).Error; err != nil {
+		return nil, err
 	}
 	return &permission, nil
 }
 
 func (r *PermissionRepositoryImpl) Create(ctx context.Context, permission entity.Permission) error {
-	if e := r.db.WithContext(ctx).Create(&permission).Error; e != nil {
-		return e
-	}
-	return nil
+	return Conn(ctx, r.db).Create(&permission).Error
 }
 
 func (r *PermissionRepositoryImpl) Update(ctx context.Context, permission *entity.Permission) error {
-	if e := r.db.WithContext(ctx).Save(permission).Error; e != nil {
-		return e
-	}
-	return nil
+	return Conn(ctx, r.db).Save(permission).Error
 }
 
 func (r *PermissionRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	if e := r.db.WithContext(ctx).Delete(&entity.Permission{}, id).Error; e != nil {
-		return e
-	}
-	return nil
+	return Conn(ctx, r.db).Delete(&entity.Permission{}, id).Error
 }
 
 func applyPermissionListFilter(query *gorm.DB, filter domainrepositories.Filter, searchFields ...string) *gorm.DB {
