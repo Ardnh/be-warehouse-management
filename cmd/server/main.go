@@ -66,7 +66,9 @@ func main() {
 
 	// Modules
 	// Repository
+	tx := repositories.NewTxManager(db)
 	userRepository := repositories.NewUserRepository(db, redisDb)
+	userRoleRepository := repositories.NewUserRoleRepository(db)
 	customerRepository := repositories.NewCustomerRepository(db, redisDb)
 	warehouseRepository := repositories.NewWarehouseRepository(db)
 	uomRepository := repositories.NewUomRepository(db)
@@ -85,7 +87,7 @@ func main() {
 
 	// Service
 	authService := services.NewAuthService(userRepository, log, cfg)
-	userService := services.NewUserService(userRepository, log)
+	userService := services.NewUserService(userRepository, userRoleRepository, log, tx)
 	customerService := services.NewCustomerService(customerRepository, log)
 	warehouseService := services.NewWarehouseService(warehouseRepository, log)
 	uomService := services.NewUomService(uomRepository, log)

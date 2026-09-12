@@ -35,14 +35,14 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*
 	if err != nil {
 		if errors.Is(err, fiber.ErrNotFound) {
 			s.log.WithField("username", req.Username).Warn("login attempt with unregistered username")
-			return nil, fiber.ErrUnauthorized
+			return nil, fiber.ErrNotFound
 		}
 		return nil, fiber.ErrInternalServerError
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
 		s.log.WithField("username", req.Username).Warn("invalid credentials provided")
-		return nil, fiber.ErrUnauthorized
+		return nil, fiber.ErrBadRequest
 	}
 
 	secretKey := []byte(s.appConfig.App.JWTSecret)

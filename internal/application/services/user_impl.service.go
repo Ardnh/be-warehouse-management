@@ -7,19 +7,25 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/services"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServiceImpl struct {
-	UserRepository repositories.UserRepository
-	log            *logrus.Logger
+	UserRepository     repositories.UserRepository
+	UserRoleRepository repositories.UserRoleRepository
+	tx                 repositories.TxManager
+	log                *logrus.Logger
 }
 
-func NewUserService(userRepository repositories.UserRepository, log *logrus.Logger) services.UserService {
+func NewUserService(userRepository repositories.UserRepository, userRoleRepository repositories.UserRoleRepository, log *logrus.Logger, tx repositories.TxManager) services.UserService {
 	return &UserServiceImpl{
-		UserRepository: userRepository,
-		log:            log,
+		UserRepository:     userRepository,
+		UserRoleRepository: userRoleRepository,
+		tx:                 tx,
+		log:                log,
 	}
 }
 
@@ -60,18 +66,29 @@ func (s *UserServiceImpl) FindByID(ctx context.Context, userID uuid.UUID) (*dto.
 }
 
 func (s *UserServiceImpl) Create(ctx context.Context, user dto.CreateUserRequest) error {
-	userEntity := entity.User{
-		Username:     user.Username,
-		Email:        user.Email,
-		PasswordHash: user.Password,
-		FullName:     user.FullName,
-		Status:       user.Status,
-	}
-	err := s.UserRepository.Create(ctx, userEntity)
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		s.log.WithField("email", user.Email).Error("failed to hash password")
+		return fiber.ErrInternalServerError
 	}
-	return nil
+
+	return s.tx.Do(ctx, func(ctx context.Context) error {
+
+		userEntity := entity.User{
+			Username:     user.Username,
+			Email:        user.Email,
+			PasswordHash: string(hashedPassword),
+			FullName:     user.FullName,
+			Status:       user.Status,
+		}
+		err := s.UserRepository.Create(ctx, userEntity)
+		if err != nil {
+			return err
+		}
+
+		return s.UserRoleRepository.AssignRoles(ctx, userEntity.ID, user.RoleIDs)
+	})
 }
 
 func (s *UserServiceImpl) Update(ctx context.Context, id uuid.UUID, user dto.UpdateUserRequest) error {

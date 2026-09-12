@@ -4,35 +4,41 @@ import (
 	"context"
 
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
-	dr "github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
+	domainrepositories "github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ReceivingItemRepositoryImpl struct{ db *gorm.DB }
 
-func NewReceivingItemRepository(db *gorm.DB) dr.ReceivingItemRepository {
+func NewReceivingItemRepository(db *gorm.DB) domainrepositories.ReceivingItemRepository {
 	return &ReceivingItemRepositoryImpl{db: db}
 }
-func (r *ReceivingItemRepositoryImpl) FindAllByReceiving(c context.Context, id uuid.UUID) ([]entity.ReceivingItem, error) {
-	var x []entity.ReceivingItem
-	e := r.db.WithContext(c).Where("receiving_id = ?", id).Preload("Product").Preload("InboundOrderItem").Find(&x).Error
-	return x, e
-}
-func (r *ReceivingItemRepositoryImpl) FindByID(c context.Context, id uuid.UUID) (*entity.ReceivingItem, error) {
-	var x entity.ReceivingItem
-	e := r.db.WithContext(c).Preload("Product").Preload("InboundOrderItem").First(&x, id).Error
-	if e != nil {
-		return nil, e
+
+func (r *ReceivingItemRepositoryImpl) FindAllByReceiving(ctx context.Context, receivingID uuid.UUID) ([]entity.ReceivingItem, error) {
+	var items []entity.ReceivingItem
+	if err := Conn(ctx, r.db).Where("receiving_id = ?", receivingID).Preload("Product").Preload("InboundOrderItem").Find(&items).Error; err != nil {
+		return nil, err
 	}
-	return &x, nil
+	return items, nil
 }
-func (r *ReceivingItemRepositoryImpl) Create(c context.Context, x entity.ReceivingItem) error {
-	return r.db.WithContext(c).Create(&x).Error
+
+func (r *ReceivingItemRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.ReceivingItem, error) {
+	var item entity.ReceivingItem
+	if err := Conn(ctx, r.db).Preload("Product").Preload("InboundOrderItem").First(&item, id).Error; err != nil {
+		return nil, err
+	}
+	return &item, nil
 }
-func (r *ReceivingItemRepositoryImpl) Update(c context.Context, x *entity.ReceivingItem) error {
-	return r.db.WithContext(c).Save(x).Error
+
+func (r *ReceivingItemRepositoryImpl) Create(ctx context.Context, item entity.ReceivingItem) error {
+	return Conn(ctx, r.db).Create(&item).Error
 }
-func (r *ReceivingItemRepositoryImpl) Delete(c context.Context, id uuid.UUID) error {
-	return r.db.WithContext(c).Delete(&entity.ReceivingItem{}, id).Error
+
+func (r *ReceivingItemRepositoryImpl) Update(ctx context.Context, item *entity.ReceivingItem) error {
+	return Conn(ctx, r.db).Save(item).Error
+}
+
+func (r *ReceivingItemRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+	return Conn(ctx, r.db).Delete(&entity.ReceivingItem{}, id).Error
 }

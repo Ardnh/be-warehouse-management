@@ -46,6 +46,7 @@ func SetupAPIRoutes(
 
 	// User
 	user := api.Group("/user", authMiddleware.Authenticate())
+	user.Get("/profile", userHandler.GetProfile)
 	user.Get("/", userHandler.FindAll)
 	user.Get("/:id", userHandler.FindByID)
 	user.Post("/", userHandler.Create)

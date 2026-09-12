@@ -17,7 +17,9 @@ type User struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 
-	Roles []Role `gorm:"many2many:user_roles;joinForeignKey:UserID;joinReferences:RoleID"`
+	Roles           []Role           `gorm:"many2many:user_roles;joinForeignKey:UserID;joinReferences:RoleID"`
+	UserRoles       []UserRole       `gorm:"foreignKey:UserID;references:ID"`
+	UserPermissions []UserPermission `gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {

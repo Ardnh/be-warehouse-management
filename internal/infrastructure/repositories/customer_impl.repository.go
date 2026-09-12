@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
-	"github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
+	domainrepositories "github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -16,15 +16,11 @@ type CustomerRepositoryImpl struct {
 	redis *redis.Client
 }
 
-func NewCustomerRepository(db *gorm.DB, redis *redis.Client) repositories.CustomerRepository {
-	return &CustomerRepositoryImpl{
-		db:    db,
-		redis: redis,
-	}
+func NewCustomerRepository(db *gorm.DB, redis *redis.Client) domainrepositories.CustomerRepository {
+	return &CustomerRepositoryImpl{db: db, redis: redis}
 }
 
-func (r *CustomerRepositoryImpl) FindAll(ctx context.Context, filter repositories.Filter) ([]entity.Customer, int64, error) {
-
+func (r *CustomerRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]entity.Customer, int64, error) {
 	var (
 		customers []entity.Customer
 		total     int64
@@ -41,8 +37,7 @@ func (r *CustomerRepositoryImpl) FindAll(ctx context.Context, filter repositorie
 	offset := (filter.Page - 1) * filter.PageSize
 
 	// --- Base query TANPA preload (untuk count & filter)
-	baseQuery := r.db.WithContext(ctx).
-		Model(&entity.Customer{})
+	baseQuery := Conn(ctx, r.db).Model(&entity.Customer{})
 
 	// --- Search (by name)
 	if filter.Search != "" {
@@ -67,33 +62,22 @@ func (r *CustomerRepositoryImpl) FindAll(ctx context.Context, filter repositorie
 
 func (r *CustomerRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.Customer, error) {
 	var customer entity.Customer
-
-	if err := r.db.WithContext(ctx).First(&customer, id).Error; err != nil {
+	if err := Conn(ctx, r.db).First(&customer, id).Error; err != nil {
 		return nil, err
 	}
-
 	return &customer, nil
 }
 
 func (r *CustomerRepositoryImpl) Create(ctx context.Context, customer entity.Customer) error {
-	if err := r.db.WithContext(ctx).Create(&customer).Error; err != nil {
-		return err
-	}
-	return nil
+	return Conn(ctx, r.db).Create(&customer).Error
 }
 
 func (r *CustomerRepositoryImpl) Update(ctx context.Context, customer *entity.Customer) error {
-	if err := r.db.WithContext(ctx).Save(&customer).Error; err != nil {
-		return err
-	}
-	return nil
+	return Conn(ctx, r.db).Save(customer).Error
 }
 
-func (r *CustomerRepositoryImpl) Delete(ctx context.Context, customer uuid.UUID) error {
-	if err := r.db.WithContext(ctx).Delete(&customer).Error; err != nil {
-		return err
-	}
-	return nil
+func (r *CustomerRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+	return Conn(ctx, r.db).Delete(&entity.Customer{}, id).Error
 }
 
 func GenerateCustomerCode(tx *gorm.DB) (string, error) {

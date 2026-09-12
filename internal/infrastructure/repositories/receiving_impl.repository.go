@@ -4,45 +4,49 @@ import (
 	"context"
 
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
-	dr "github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
+	domainrepositories "github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ReceivingRepositoryImpl struct{ db *gorm.DB }
 
-func NewReceivingRepository(db *gorm.DB) dr.ReceivingRepository {
+func NewReceivingRepository(db *gorm.DB) domainrepositories.ReceivingRepository {
 	return &ReceivingRepositoryImpl{db: db}
 }
-func (r *ReceivingRepositoryImpl) FindAll(c context.Context, f dr.Filter) ([]entity.Receiving, int64, error) {
-	var x []entity.Receiving
-	var t int64
-	q := r.db.WithContext(c).Model(&entity.Receiving{}).Preload("Items")
-	if f.Search != "" {
-		q = q.Where("receiving_number ILIKE ?", "%"+f.Search+"%")
+
+func (r *ReceivingRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]entity.Receiving, int64, error) {
+	var items []entity.Receiving
+	var total int64
+	q := Conn(ctx, r.db).Model(&entity.Receiving{}).Preload("Items")
+	if filter.Search != "" {
+		q = q.Where("receiving_number ILIKE ?", "%"+filter.Search+"%")
 	}
-	if e := q.Count(&t).Error; e != nil {
-		return nil, 0, e
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
-	if e := applyMasterListFilter(q, f).Find(&x).Error; e != nil {
-		return nil, 0, e
+	if err := applyMasterListFilter(q, filter).Find(&items).Error; err != nil {
+		return nil, 0, err
 	}
-	return x, t, nil
+	return items, total, nil
 }
-func (r *ReceivingRepositoryImpl) FindByID(c context.Context, id uuid.UUID) (*entity.Receiving, error) {
-	var x entity.Receiving
-	e := r.db.WithContext(c).Preload("Items").First(&x, id).Error
-	if e != nil {
-		return nil, e
+
+func (r *ReceivingRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.Receiving, error) {
+	var item entity.Receiving
+	if err := Conn(ctx, r.db).Preload("Items").First(&item, id).Error; err != nil {
+		return nil, err
 	}
-	return &x, nil
+	return &item, nil
 }
-func (r *ReceivingRepositoryImpl) Create(c context.Context, x entity.Receiving) error {
-	return r.db.WithContext(c).Session(&gorm.Session{FullSaveAssociations: true}).Create(&x).Error
+
+func (r *ReceivingRepositoryImpl) Create(ctx context.Context, item entity.Receiving) error {
+	return Conn(ctx, r.db).Session(&gorm.Session{FullSaveAssociations: true}).Create(&item).Error
 }
-func (r *ReceivingRepositoryImpl) Update(c context.Context, x *entity.Receiving) error {
-	return r.db.WithContext(c).Save(x).Error
+
+func (r *ReceivingRepositoryImpl) Update(ctx context.Context, item *entity.Receiving) error {
+	return Conn(ctx, r.db).Save(item).Error
 }
-func (r *ReceivingRepositoryImpl) Delete(c context.Context, id uuid.UUID) error {
-	return r.db.WithContext(c).Delete(&entity.Receiving{}, id).Error
+
+func (r *ReceivingRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+	return Conn(ctx, r.db).Delete(&entity.Receiving{}, id).Error
 }

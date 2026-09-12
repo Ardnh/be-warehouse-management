@@ -14,24 +14,31 @@ type InboundOrderItemRepositoryImpl struct{ db *gorm.DB }
 func NewInboundOrderItemRepository(db *gorm.DB) domainrepositories.InboundOrderItemRepository {
 	return &InboundOrderItemRepositoryImpl{db: db}
 }
+
 func (r *InboundOrderItemRepositoryImpl) FindAllByInboundOrder(ctx context.Context, orderID uuid.UUID) ([]entity.InboundOrderItem, error) {
 	var list []entity.InboundOrderItem
-	err := r.db.WithContext(ctx).Where("inbound_order_id = ?", orderID).Preload("Product").Find(&list).Error
-	return list, err
+	if err := Conn(ctx, r.db).Where("inbound_order_id = ?", orderID).Preload("Product").Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return list, nil
 }
+
 func (r *InboundOrderItemRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.InboundOrderItem, error) {
 	var item entity.InboundOrderItem
-	if err := r.db.WithContext(ctx).Preload("Product").First(&item, id).Error; err != nil {
+	if err := Conn(ctx, r.db).Preload("Product").First(&item, id).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
 }
+
 func (r *InboundOrderItemRepositoryImpl) Create(ctx context.Context, item entity.InboundOrderItem) error {
-	return r.db.WithContext(ctx).Create(&item).Error
+	return Conn(ctx, r.db).Create(&item).Error
 }
+
 func (r *InboundOrderItemRepositoryImpl) Update(ctx context.Context, item *entity.InboundOrderItem) error {
-	return r.db.WithContext(ctx).Save(item).Error
+	return Conn(ctx, r.db).Save(item).Error
 }
+
 func (r *InboundOrderItemRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&entity.InboundOrderItem{}, id).Error
+	return Conn(ctx, r.db).Delete(&entity.InboundOrderItem{}, id).Error
 }
