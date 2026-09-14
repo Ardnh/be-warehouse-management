@@ -56,14 +56,15 @@ func (s *CustomerServiceImpl) FindByID(ctx context.Context, id uuid.UUID) (*dto.
 func (s *CustomerServiceImpl) Create(ctx context.Context, customer dto.CreateCustomerRequest) error {
 
 	customerEntity := entity.Customer{
-		ID:        uuid.New(),
-		Code:      customer.Code,
-		Name:      customer.Name,
-		Email:     customer.Email,
-		Address:   customer.Address,
-		Phone:     customer.Phone,
-		Status:    customer.Status,
-		CreatedAt: time.Now(),
+		ID:          uuid.New(),
+		WarehouseID: customer.WarehouseID,
+		Code:        customer.Code,
+		Name:        customer.Name,
+		Email:       customer.Email,
+		Address:     customer.Address,
+		Phone:       customer.Phone,
+		Status:      customer.Status,
+		CreatedAt:   time.Now(),
 	}
 
 	err := s.customerRepository.Create(ctx, customerEntity)

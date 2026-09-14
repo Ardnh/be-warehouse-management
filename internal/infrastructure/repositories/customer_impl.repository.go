@@ -37,7 +37,7 @@ func (r *CustomerRepositoryImpl) FindAll(ctx context.Context, filter domainrepos
 	offset := (filter.Page - 1) * filter.PageSize
 
 	// --- Base query TANPA preload (untuk count & filter)
-	baseQuery := Conn(ctx, r.db).Model(&entity.Customer{})
+	baseQuery := Conn(ctx, r.db).Model(&entity.Customer{}).Preload("Warehouse")
 
 	// --- Search (by name)
 	if filter.Search != "" {
@@ -62,7 +62,7 @@ func (r *CustomerRepositoryImpl) FindAll(ctx context.Context, filter domainrepos
 
 func (r *CustomerRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.Customer, error) {
 	var customer entity.Customer
-	if err := Conn(ctx, r.db).First(&customer, id).Error; err != nil {
+	if err := Conn(ctx, r.db).Preload("Warehouse").First(&customer, id).Error; err != nil {
 		return nil, err
 	}
 	return &customer, nil
