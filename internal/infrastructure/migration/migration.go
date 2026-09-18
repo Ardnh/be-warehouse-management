@@ -34,6 +34,9 @@ func Migrate(db *gorm.DB) error {
 		&entity.ReceivingItem{},
 		&entity.HandlingUnit{},
 		&entity.HandlingUnitItem{},
+
+		&entity.CustomerWarehouse{},
+		&entity.ProductWarehouse{},
 	)
 
 	if err != nil {

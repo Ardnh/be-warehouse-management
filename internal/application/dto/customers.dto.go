@@ -8,47 +8,56 @@ import (
 )
 
 type Customer struct {
-	ID        uuid.UUID `json:"id"`
-	Code      string    `json:"code"`
-	Name      string    `json:"name"`
-	Address   string    `json:"address"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	DeletedAt time.Time `json:"deleted_at"`
+	ID            uuid.UUID  `json:"id"`
+	WarehouseCode string     `json:"warehouse_code,omitempty"`
+	Code          string     `json:"code"`
+	Name          string     `json:"name"`
+	Email         string     `json:"email"`
+	Address       string     `json:"address"`
+	Status        string     `json:"status"`
+	Phone         string     `json:"phone"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	DeletedAt     *time.Time `json:"deleted_at,omitempty"`
 }
 
 type CreateCustomerRequest struct {
-	Code    string `json:"code" validate:"required"`
-	Name    string `json:"name" validate:"required"`
+	Code    string `json:"code" validate:"required,max=50"`
+	Name    string `json:"name" validate:"required,max=255"`
+	Email   string `json:"email" validate:"required,email,max=50"`
 	Address string `json:"address" validate:"required"`
 	Status  string `json:"status" validate:"required"`
-	Email   string `json:"email" validate:"required"`
-	Phone   string `json:"phone" validate:"required"`
+	Phone   string `json:"phone" validate:"required,max=20"`
 }
 
 type UpdateCustomerRequest struct {
-	Name    string `json:"name" validate:"required"`
+	Name    string `json:"name" validate:"required,max=255"`
 	Address string `json:"address" validate:"required"`
 	Status  string `json:"status" validate:"required"`
-	Email   string `json:"email" validate:"required"`
-	Phone   string `json:"phone" validate:"required"`
+	Email   string `json:"email" validate:"required,email,max=50"`
+	Phone   string `json:"phone" validate:"required,max=20"`
 }
 
 func ToCustomerDTO(c *entity.Customer) Customer {
 	if c == nil {
 		return Customer{}
 	}
-	return Customer{
+	res := Customer{
 		ID:        c.ID,
 		Code:      c.Code,
 		Name:      c.Name,
+		Email:     c.Email,
 		Address:   c.Address,
 		Status:    c.Status,
+		Phone:     c.Phone,
 		CreatedAt: c.CreatedAt,
 		UpdatedAt: c.UpdatedAt,
-		DeletedAt: c.DeletedAt.Time,
 	}
+	if c.DeletedAt.Valid {
+		deletedAt := c.DeletedAt.Time
+		res.DeletedAt = &deletedAt
+	}
+	return res
 }
 
 func ToCustomerDTOs(customers []entity.Customer) []Customer {

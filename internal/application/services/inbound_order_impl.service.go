@@ -2,48 +2,178 @@ package services
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/Ardnh/be-warehouse-management/internal/application/dto"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	domainservices "github.com/Ardnh/be-warehouse-management/internal/domain/services"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type InboundOrderServiceImpl struct {
-	repository repositories.InboundOrderRepository
-	items      repositories.InboundOrderItemRepository
-	log        *logrus.Logger
+	inboundOrder                repositories.InboundOrderRepository
+	inboundOrderItems           repositories.InboundOrderItemRepository
+	customerWarehouseRepository repositories.CustomerWarehouseRepository
+	productWarehouseRepository  repositories.ProductWarehouseRepository
+	productRepository           repositories.ProductRepository
+	customers                   repositories.CustomerRepository
+	tx                          repositories.TxManager
+	log                         *logrus.Logger
 }
 
-func NewInboundOrderService(repository repositories.InboundOrderRepository, items repositories.InboundOrderItemRepository, log *logrus.Logger) domainservices.InboundOrderService {
-	return &InboundOrderServiceImpl{repository: repository, items: items, log: log}
+func NewInboundOrderService(repository repositories.InboundOrderRepository, items repositories.InboundOrderItemRepository, customerWarehouseRepository repositories.CustomerWarehouseRepository, productWarehouseRepository repositories.ProductWarehouseRepository, productRepository repositories.ProductRepository, customers repositories.CustomerRepository, tx repositories.TxManager, log *logrus.Logger) domainservices.InboundOrderService {
+	return &InboundOrderServiceImpl{
+		inboundOrder:                repository,
+		inboundOrderItems:           items,
+		customerWarehouseRepository: customerWarehouseRepository,
+		productWarehouseRepository:  productWarehouseRepository,
+		productRepository:           productRepository,
+		customers:                   customers,
+		tx:                          tx,
+		log:                         log,
+	}
 }
+
 func (s *InboundOrderServiceImpl) FindAll(ctx context.Context, filter dto.FilterDTO) ([]dto.InboundOrderResponse, int64, error) {
-	list, total, err := s.repository.FindAll(ctx, repositories.Filter{Search: filter.Search, Page: filter.Page, PageSize: filter.Size, SortBy: filter.SortBy, SortDir: filter.SortDir})
+	list, total, err := s.inboundOrder.FindAll(ctx, repositories.Filter{Search: filter.Search, Page: filter.Page, PageSize: filter.Size, SortBy: filter.SortBy, SortDir: filter.SortDir})
 	if err != nil {
 		return nil, 0, err
 	}
 	return dto.ToInboundOrderResponses(list), total, nil
 }
+
 func (s *InboundOrderServiceImpl) FindByID(ctx context.Context, id uuid.UUID) (*dto.InboundOrderResponse, error) {
-	item, err := s.repository.FindByID(ctx, id)
+	item, err := s.inboundOrder.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return dto.ToInboundOrderResponse(item), nil
 }
-func (s *InboundOrderServiceImpl) Create(ctx context.Context, request dto.CreateInboundOrderRequest) error {
-	order := entity.InboundOrder{ID: uuid.New(), CustomerID: request.CustomerID, OrderNumber: "IN-" + uuid.NewString()[:8], Status: entity.InboundStatusDraft, ExpectedArrivalAt: request.ExpectedArrivalAt, Notes: request.Notes, CreatedAt: time.Now()}
-	for _, item := range request.Items {
-		order.Items = append(order.Items, entity.InboundOrderItem{ID: uuid.New(), InboundOrderID: order.ID, ProductID: item.ProductID, ExpectedQty: item.ExpectedQty, CreatedAt: time.Now()})
-	}
-	return s.repository.Create(ctx, order)
+
+func (s *InboundOrderServiceImpl) Create(ctx context.Context, warehouseID uuid.UUID, request dto.CreateInboundOrderRequest) error {
+
+	return s.tx.Do(ctx, func(txCtx context.Context) error {
+
+		// 1. Validate Customer
+		customer, err := s.customers.FindByID(txCtx, request.CustomerID)
+		if err != nil {
+			return err
+		}
+
+		if customer == nil {
+			return fiber.NewError(
+				fiber.StatusNotFound,
+				"customer not found",
+			)
+		}
+
+		// 2. Auto-register Customer -> Warehouse
+		customerWarehouse, err := s.customerWarehouseRepository.FindByCustomerAndWarehouse(
+			txCtx,
+			request.CustomerID,
+			warehouseID,
+		)
+
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+
+		if customerWarehouse == nil {
+			customerWarehouse = &entity.CustomerWarehouse{
+				ID:          uuid.New(),
+				CustomerID:  request.CustomerID,
+				WarehouseID: warehouseID,
+				Status:      "active",
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			}
+
+			if err := s.customerWarehouseRepository.Create(txCtx, *customerWarehouse); err != nil {
+				return err
+			}
+		}
+
+		// 3. Create Inbound Order
+		order := entity.InboundOrder{
+			ID:                uuid.New(),
+			WarehouseID:       warehouseID,
+			CustomerID:        request.CustomerID,
+			OrderNumber:       "IN-" + uuid.NewString()[:8],
+			Status:            entity.InboundStatusDraft,
+			ExpectedArrivalAt: request.ExpectedArrivalAt,
+			Notes:             request.Notes,
+			CreatedAt:         time.Now(),
+			UpdatedAt:         time.Now(),
+		}
+
+		// 4. Validate + auto-register Products
+		for _, item := range request.Items {
+
+			product, err := s.productRepository.FindByID(
+				txCtx,
+				item.ProductID,
+			)
+			if err != nil {
+				return err
+			}
+
+			if product == nil {
+				return errors.New("product not found")
+			}
+
+			productWarehouse, err := s.productWarehouseRepository.FindByProductAndWarehouse(
+				txCtx,
+				item.ProductID,
+				warehouseID,
+			)
+
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+
+			if productWarehouse == nil {
+				productWarehouse = &entity.ProductWarehouse{
+					ID:          uuid.New(),
+					ProductID:   item.ProductID,
+					WarehouseID: warehouseID,
+					Status:      "active",
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
+				}
+
+				if err := s.productWarehouseRepository.Create(
+					txCtx,
+					*productWarehouse,
+				); err != nil {
+					return err
+				}
+			}
+
+			// 5. Add Inbound Order Item
+			order.Items = append(
+				order.Items,
+				entity.InboundOrderItem{
+					ID:             uuid.New(),
+					InboundOrderID: order.ID,
+					ProductID:      item.ProductID,
+					ExpectedQty:    item.ExpectedQty,
+					CreatedAt:      time.Now(),
+				},
+			)
+		}
+
+		// 6. Create Inbound Order + Items
+		return s.inboundOrder.Create(txCtx, order)
+	})
 }
+
 func (s *InboundOrderServiceImpl) Update(ctx context.Context, id uuid.UUID, request dto.UpdateInboundOrderRequest) error {
-	order, err := s.repository.FindByID(ctx, id)
+	order, err := s.inboundOrder.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -74,10 +204,11 @@ func (s *InboundOrderServiceImpl) Update(ctx context.Context, id uuid.UUID, requ
 			return err
 		}
 	}
-	return s.repository.Update(ctx, order)
+	return s.inboundOrder.Update(ctx, order)
 }
+
 func (s *InboundOrderServiceImpl) UpdateStatus(ctx context.Context, id uuid.UUID, request dto.UpdateInboundOrderStatusRequest) error {
-	order, err := s.repository.FindByID(ctx, id)
+	order, err := s.inboundOrder.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -89,10 +220,11 @@ func (s *InboundOrderServiceImpl) UpdateStatus(ctx context.Context, id uuid.UUID
 	if request.Notes != nil {
 		order.Notes = request.Notes
 	}
-	return s.repository.Update(ctx, order)
+	return s.inboundOrder.Update(ctx, order)
 }
+
 func (s *InboundOrderServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	return s.repository.Delete(ctx, id)
+	return s.inboundOrder.Delete(ctx, id)
 }
 
 // fiberErr is kept local to avoid coupling the application service to HTTP details.
