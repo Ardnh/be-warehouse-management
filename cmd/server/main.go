@@ -91,7 +91,7 @@ func main() {
 	zoneService := services.NewZoneService(zoneRepository, log)
 	rackService := services.NewRackService(rackRepository, log)
 	storageLocationService := services.NewStorageLocationService(storageLocationRepository, log)
-	inboundOrderService := services.NewInboundOrderService(inboundOrderRepository, inboundOrderItemRepository, log)
+	inboundOrderService := services.NewInboundOrderService(inboundOrderRepository, inboundOrderItemRepository, tx, log)
 	inboundOrderItemService := services.NewInboundOrderItemService(inboundOrderItemRepository, log)
 	handlingUnitService := services.NewHandlingUnitService(handlingUnitRepository, log)
 	handlingUnitItemService := services.NewHandlingUnitItemService(handlingUnitItemRepository, log)

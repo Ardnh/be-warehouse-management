@@ -9,7 +9,6 @@ import (
 
 type Customer struct {
 	ID            uuid.UUID  `json:"id"`
-	WarehouseID   uuid.UUID  `json:"warehouse_id"`
 	WarehouseCode string     `json:"warehouse_code,omitempty"`
 	Code          string     `json:"code"`
 	Name          string     `json:"name"`
@@ -23,13 +22,12 @@ type Customer struct {
 }
 
 type CreateCustomerRequest struct {
-	WarehouseID uuid.UUID `json:"warehouse_id" validate:"required"`
-	Code        string    `json:"code" validate:"required,max=50"`
-	Name        string    `json:"name" validate:"required,max=255"`
-	Email       string    `json:"email" validate:"required,email,max=50"`
-	Address     string    `json:"address" validate:"required"`
-	Status      string    `json:"status" validate:"required"`
-	Phone       string    `json:"phone" validate:"required,max=20"`
+	Code    string `json:"code" validate:"required,max=50"`
+	Name    string `json:"name" validate:"required,max=255"`
+	Email   string `json:"email" validate:"required,email,max=50"`
+	Address string `json:"address" validate:"required"`
+	Status  string `json:"status" validate:"required"`
+	Phone   string `json:"phone" validate:"required,max=20"`
 }
 
 type UpdateCustomerRequest struct {
@@ -45,19 +43,15 @@ func ToCustomerDTO(c *entity.Customer) Customer {
 		return Customer{}
 	}
 	res := Customer{
-		ID:          c.ID,
-		WarehouseID: c.WarehouseID,
-		Code:        c.Code,
-		Name:        c.Name,
-		Email:       c.Email,
-		Address:     c.Address,
-		Status:      c.Status,
-		Phone:       c.Phone,
-		CreatedAt:   c.CreatedAt,
-		UpdatedAt:   c.UpdatedAt,
-	}
-	if c.Warehouse != nil {
-		res.WarehouseCode = c.Warehouse.Code
+		ID:        c.ID,
+		Code:      c.Code,
+		Name:      c.Name,
+		Email:     c.Email,
+		Address:   c.Address,
+		Status:    c.Status,
+		Phone:     c.Phone,
+		CreatedAt: c.CreatedAt,
+		UpdatedAt: c.UpdatedAt,
 	}
 	if c.DeletedAt.Valid {
 		deletedAt := c.DeletedAt.Time

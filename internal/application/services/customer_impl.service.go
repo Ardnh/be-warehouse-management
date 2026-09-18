@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"time"
 
 	"github.com/Ardnh/be-warehouse-management/internal/application/dto"
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
@@ -56,15 +55,12 @@ func (s *CustomerServiceImpl) FindByID(ctx context.Context, id uuid.UUID) (*dto.
 func (s *CustomerServiceImpl) Create(ctx context.Context, customer dto.CreateCustomerRequest) error {
 
 	customerEntity := entity.Customer{
-		ID:          uuid.New(),
-		WarehouseID: customer.WarehouseID,
-		Code:        customer.Code,
-		Name:        customer.Name,
-		Email:       customer.Email,
-		Address:     customer.Address,
-		Phone:       customer.Phone,
-		Status:      customer.Status,
-		CreatedAt:   time.Now(),
+		Code:    customer.Code,
+		Name:    customer.Name,
+		Email:   customer.Email,
+		Address: customer.Address,
+		Phone:   customer.Phone,
+		Status:  customer.Status,
 	}
 
 	err := s.customerRepository.Create(ctx, customerEntity)

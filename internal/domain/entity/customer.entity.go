@@ -26,5 +26,7 @@ func (c *Customer) BeforeCreate(tx *gorm.DB) error {
 	if c.ID == uuid.Nil {
 		c.ID = uuid.New()
 	}
+
+	c.CreatedAt = time.Now()
 	return nil
 }
