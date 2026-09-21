@@ -173,38 +173,38 @@ func (s *InboundOrderServiceImpl) Create(ctx context.Context, warehouseID uuid.U
 }
 
 func (s *InboundOrderServiceImpl) Update(ctx context.Context, id uuid.UUID, request dto.UpdateInboundOrderRequest) error {
-	order, err := s.inboundOrder.FindByID(ctx, id)
-	if err != nil {
-		return err
-	}
-	if !order.Status.IsEditable() {
-		return fiberErr("inbound order cannot be edited in its current status")
-	}
-	if request.CustomerID != nil {
-		order.CustomerID = *request.CustomerID
-	}
-	if request.ExpectedArrivalAt != nil {
-		order.ExpectedArrivalAt = request.ExpectedArrivalAt
-	}
-	if request.Notes != nil {
-		order.Notes = request.Notes
-	}
-	for _, item := range request.Items {
-		if item.ID != nil {
-			existing, findErr := s.items.FindByID(ctx, *item.ID)
-			if findErr != nil {
-				return findErr
-			}
-			existing.ProductID = item.ProductID
-			existing.ExpectedQty = item.ExpectedQty
-			if err = s.items.Update(ctx, existing); err != nil {
-				return err
-			}
-		} else if err = s.items.Create(ctx, entity.InboundOrderItem{ID: uuid.New(), InboundOrderID: id, ProductID: item.ProductID, ExpectedQty: item.ExpectedQty, CreatedAt: time.Now()}); err != nil {
-			return err
-		}
-	}
-	return s.inboundOrder.Update(ctx, order)
+	// order, err := s.inboundOrder.FindByID(ctx, id)
+	// if err != nil {
+	// 	return err
+	// }
+	// if !order.Status.IsEditable() {
+	// 	return fiberErr("inbound order cannot be edited in its current status")
+	// }
+	// if request.CustomerID != nil {
+	// 	order.CustomerID = *request.CustomerID
+	// }
+	// if request.ExpectedArrivalAt != nil {
+	// 	order.ExpectedArrivalAt = request.ExpectedArrivalAt
+	// }
+	// if request.Notes != nil {
+	// 	order.Notes = request.Notes
+	// }
+	// for _, item := range request.Items {
+	// 	if item.ID != nil {
+	// 		existing, findErr := s.items.FindByID(ctx, *item.ID)
+	// 		if findErr != nil {
+	// 			return findErr
+	// 		}
+	// 		existing.ProductID = item.ProductID
+	// 		existing.ExpectedQty = item.ExpectedQty
+	// 		if err = s.items.Update(ctx, existing); err != nil {
+	// 			return err
+	// 		}
+	// 	} else if err = s.items.Create(ctx, entity.InboundOrderItem{ID: uuid.New(), InboundOrderID: id, ProductID: item.ProductID, ExpectedQty: item.ExpectedQty, CreatedAt: time.Now()}); err != nil {
+	// 		return err
+	// 	}
+	// }
+	return nil
 }
 
 func (s *InboundOrderServiceImpl) UpdateStatus(ctx context.Context, id uuid.UUID, request dto.UpdateInboundOrderStatusRequest) error {

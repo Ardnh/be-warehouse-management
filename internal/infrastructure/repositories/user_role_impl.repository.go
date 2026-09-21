@@ -61,6 +61,18 @@ func (r *UserRoleRepositoryImpl) FindByUserAndRole(ctx context.Context, userID u
 	return &userRole, nil
 }
 
+func (r *UserRoleRepositoryImpl) FindByUserAndWarehouse(ctx context.Context, userID uuid.UUID, warehouseID uuid.UUID) (*entity.UserRole, error) {
+	var userRole entity.UserRole
+	if err := Conn(ctx, r.db).
+		Preload("Role").
+		Preload("Warehouse").
+		Where("user_id = ? AND warehouse_id = ?", userID, warehouseID).
+		First(&userRole).Error; err != nil {
+		return nil, err
+	}
+	return &userRole, nil
+}
+
 func (r *UserRoleRepositoryImpl) Create(ctx context.Context, userRole entity.UserRole) error {
 	return Conn(ctx, r.db).Create(&userRole).Error
 }

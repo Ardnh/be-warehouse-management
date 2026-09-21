@@ -65,9 +65,10 @@ func main() {
 	// Repository
 	tx := repositories.NewTxManager(db)
 	userRepository := repositories.NewUserRepository(db, redisDb)
+	loginSessionRepository := repositories.NewLoginSessionRepository(db)
 	userRoleRepository := repositories.NewUserRoleRepository(db)
 	customerRepository := repositories.NewCustomerRepository(db, redisDb)
-	customerWarehousrRepository := repositories.NewCustomerWarehouseRepository(db, redisDb)
+	customerWarehouseRepository := repositories.NewCustomerWarehouseRepository(db, redisDb)
 	warehouseRepository := repositories.NewWarehouseRepository(db)
 	uomRepository := repositories.NewUomRepository(db)
 	zoneRepository := repositories.NewZoneRepository(db)
@@ -85,7 +86,14 @@ func main() {
 	permissionRepository := repositories.NewPermissionRepository(db)
 
 	// Service
-	authService := services.NewAuthService(userRepository, log, cfg)
+	authService := services.NewAuthService(
+		userRepository,
+		loginSessionRepository,
+		userRoleRepository,
+		warehouseRepository,
+		log,
+		cfg,
+	)
 	userService := services.NewUserService(userRepository, userRoleRepository, log, tx)
 	customerService := services.NewCustomerService(customerRepository, log)
 	warehouseService := services.NewWarehouseService(warehouseRepository, log)
@@ -96,7 +104,7 @@ func main() {
 	inboundOrderService := services.NewInboundOrderService(
 		inboundOrderRepository,
 		inboundOrderItemRepository,
-		customerWarehousrRepository,
+		customerWarehouseRepository,
 		productWarehouseRepository,
 		productRepository,
 		customerRepository,
