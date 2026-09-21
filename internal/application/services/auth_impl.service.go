@@ -52,7 +52,18 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*
 		return nil, fiber.ErrBadRequest
 	}
 
-	secretTempKey := []byte(s.appConfig.App.JWTSecret)
+	secretKey := []byte(s.appConfig.App.JWTSecret)
+
+	// Find user role
+	userRole, err := s.userRoleRepository.FindByUserID(ctx, user.ID)
+	if err != nil {
+		return nil, fiber.ErrInternalServerError
+	}
+
+	userRoleDtos := dto.ToUserRoleDtos(userRole)
+	if len(userRoleDtos) == 0 {
+		return nil, fiber.ErrUnauthorized
+	}
 
 	// Create login session
 	now := time.Now()
@@ -64,7 +75,7 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*
 	s.sessionRepository.Create(ctx, session)
 
 	// Generate temporary token
-	token, expiredTimeISO, err := utils.GenerateTempToken(secretTempKey, user.ID.String())
+	token, expiredTimeISO, err := utils.GenerateTempToken(secretKey, user.ID.String())
 	if err != nil {
 		s.log.WithFields(logrus.Fields{
 			"user_id": user.ID.String(),
@@ -75,62 +86,13 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*
 
 	s.log.WithField("user_id", user.ID).Info("login successful")
 
+	isRequireWarehouseSelection := len(userRoleDtos) == 1
 	return &dto.LoginTempResponseDto{
-		Token:      *token,
-		ExpireDate: *expiredTimeISO,
+		Token:                     *token,
+		ExpireDate:                *expiredTimeISO,
+		RequireWarehouseSelection: !isRequireWarehouseSelection,
+		Warehouses:                userRoleDtos,
 	}, nil
-}
-
-func (s *AuthServiceImpl) Register(ctx context.Context, req dto.RegisterRequestDto) error {
-	existingUser, err := s.userRepository.FindByEmail(ctx, req.Email)
-	if err != nil && !errors.Is(err, fiber.ErrNotFound) {
-		s.log.WithFields(logrus.Fields{
-			"email": req.Email,
-			"error": err,
-		}).Error("failed to check existing user")
-		return fiber.ErrNotFound
-	}
-
-	if existingUser != nil {
-		s.log.WithField("email", req.Email).Warn("registration attempt with existing email")
-		return fiber.ErrConflict
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		s.log.WithField("email", req.Email).Error("failed to hash password")
-		return fiber.ErrInternalServerError
-	}
-
-	user := entity.User{
-		ID:           uuid.New(),
-		FullName:     req.FullName,
-		Username:     req.Username,
-		Email:        req.Email,
-		PasswordHash: string(hashedPassword),
-	}
-
-	err = s.userRepository.Create(ctx, user)
-	if err != nil {
-		s.log.WithFields(logrus.Fields{
-			"email": req.Email,
-			"error": err,
-		}).Error("failed to create user")
-		return fiber.ErrInternalServerError
-	}
-
-	// Add role grouping to Casbin
-	// _, err = s.casbinEnforcer.AddGroupingPolicy(user.ID.String(), constants.RoleDailyUser)
-	// if err != nil {
-	// 	s.log.WithFields(logrus.Fields{
-	// 		"email":  req.Email,
-	// 		"userID": user.ID,
-	// 		"error":  err,
-	// 	}).Error("failed to add casbin grouping policy")
-	// 	return fiber.ErrInternalServerError
-	// }
-
-	return nil
 }
 
 func (s *AuthServiceImpl) LoginSelection(ctx context.Context, userID uuid.UUID, warehouseID uuid.UUID) (*dto.LoginTempResponseDto, error) {
@@ -185,4 +147,56 @@ func (s *AuthServiceImpl) LoginSelection(ctx context.Context, userID uuid.UUID, 
 		Token:      *accessToken,
 		ExpireDate: *expiresIn,
 	}, nil
+}
+
+func (s *AuthServiceImpl) Register(ctx context.Context, req dto.RegisterRequestDto) error {
+	existingUser, err := s.userRepository.FindByEmail(ctx, req.Email)
+	if err != nil && !errors.Is(err, fiber.ErrNotFound) {
+		s.log.WithFields(logrus.Fields{
+			"email": req.Email,
+			"error": err,
+		}).Error("failed to check existing user")
+		return fiber.ErrNotFound
+	}
+
+	if existingUser != nil {
+		s.log.WithField("email", req.Email).Warn("registration attempt with existing email")
+		return fiber.ErrConflict
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		s.log.WithField("email", req.Email).Error("failed to hash password")
+		return fiber.ErrInternalServerError
+	}
+
+	user := entity.User{
+		ID:           uuid.New(),
+		FullName:     req.FullName,
+		Username:     req.Username,
+		Email:        req.Email,
+		PasswordHash: string(hashedPassword),
+	}
+
+	err = s.userRepository.Create(ctx, user)
+	if err != nil {
+		s.log.WithFields(logrus.Fields{
+			"email": req.Email,
+			"error": err,
+		}).Error("failed to create user")
+		return fiber.ErrInternalServerError
+	}
+
+	// Add role grouping to Casbin
+	// _, err = s.casbinEnforcer.AddGroupingPolicy(user.ID.String(), constants.RoleDailyUser)
+	// if err != nil {
+	// 	s.log.WithFields(logrus.Fields{
+	// 		"email":  req.Email,
+	// 		"userID": user.ID,
+	// 		"error":  err,
+	// 	}).Error("failed to add casbin grouping policy")
+	// 	return fiber.ErrInternalServerError
+	// }
+
+	return nil
 }

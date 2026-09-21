@@ -34,5 +34,20 @@ func main() {
 		log.Fatalf("❌ Failed to seed user: %v", err)
 	}
 
+	// Seed customers
+	if err := seeder.SeedCustomers(db); err != nil {
+		log.Fatalf("❌ Failed to seed customers: %v", err)
+	}
+
+	// Seed UOMs
+	if err := seeder.SeedUoms(db); err != nil {
+		log.Fatalf("❌ Failed to seed UOMs: %v", err)
+	}
+
+	// Seed products using the existing customers and UOM records
+	if err := seeder.SeedProducts(db); err != nil {
+		log.Fatalf("❌ Failed to seed products: %v", err)
+	}
+
 	log.Println("Done!")
 }
