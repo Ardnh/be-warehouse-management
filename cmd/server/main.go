@@ -18,10 +18,7 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/middleware"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/routes"
-<<<<<<< HEAD
-=======
 	"github.com/Ardnh/be-warehouse-management/internal/utils/casbin"
->>>>>>> 31ecdeb116ea189c9966cc3c9323c276205d0ff6
 )
 
 func main() {
@@ -70,6 +67,7 @@ func main() {
 	userRepository := repositories.NewUserRepository(db, redisDb)
 	userRoleRepository := repositories.NewUserRoleRepository(db)
 	customerRepository := repositories.NewCustomerRepository(db, redisDb)
+	customerWarehousrRepository := repositories.NewCustomerWarehouseRepository(db, redisDb)
 	warehouseRepository := repositories.NewWarehouseRepository(db)
 	uomRepository := repositories.NewUomRepository(db)
 	zoneRepository := repositories.NewZoneRepository(db)
@@ -80,6 +78,7 @@ func main() {
 	handlingUnitRepository := repositories.NewHandlingUnitRepository(db)
 	handlingUnitItemRepository := repositories.NewHandlingUnitItemRepository(db)
 	productRepository := repositories.NewProductRepository(db)
+	productWarehouseRepository := repositories.NewProductWarehouseRepository(db, redisDb)
 	roleRepository := repositories.NewRoleRepository(db)
 	receivingRepository := repositories.NewReceivingRepository(db)
 	receivingItemRepository := repositories.NewReceivingItemRepository(db)
@@ -94,7 +93,16 @@ func main() {
 	zoneService := services.NewZoneService(zoneRepository, log)
 	rackService := services.NewRackService(rackRepository, log)
 	storageLocationService := services.NewStorageLocationService(storageLocationRepository, log)
-	inboundOrderService := services.NewInboundOrderService(inboundOrderRepository, inboundOrderItemRepository, tx, log)
+	inboundOrderService := services.NewInboundOrderService(
+		inboundOrderRepository,
+		inboundOrderItemRepository,
+		customerWarehousrRepository,
+		productWarehouseRepository,
+		productRepository,
+		customerRepository,
+		tx,
+		log,
+	)
 	inboundOrderItemService := services.NewInboundOrderItemService(inboundOrderItemRepository, log)
 	handlingUnitService := services.NewHandlingUnitService(handlingUnitRepository, log)
 	handlingUnitItemService := services.NewHandlingUnitItemService(handlingUnitItemRepository, log)
