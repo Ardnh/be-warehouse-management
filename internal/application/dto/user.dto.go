@@ -75,9 +75,11 @@ func ToUserDTO(u *entity.User) User {
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}
+
 	for _, r := range u.Roles {
 		res.Roles = append(res.Roles, NewRoleResponse(r))
 	}
+
 	for _, userRole := range u.UserRoles {
 		userRoleResponse := UserRoleResponse{
 			RoleID:      userRole.RoleID,
@@ -94,15 +96,16 @@ func ToUserDTO(u *entity.User) User {
 		}
 		res.UserRoles = append(res.UserRoles, userRoleResponse)
 	}
-	for _, userPermission := range u.UserPermissions {
-		userPermissionResponse := UserPermissionResponse{
-			PermissionID: userPermission.PermissionID,
-		}
-		if userPermission.Permission != nil {
-			userPermissionResponse.Permission = ToPermissionDTO(userPermission.Permission)
-		}
-		res.UserPermissions = append(res.UserPermissions, userPermissionResponse)
-	}
+
+	// for _, userPermission := range u.UserPermissions {
+	// 	userPermissionResponse := UserPermissionResponse{
+	// 		PermissionID: userPermission.PermissionID,
+	// 	}
+	// 	if userPermission.Permission != nil {
+	// 		userPermissionResponse.Permission = ToPermissionDTO(userPermission.Permission)
+	// 	}
+	// 	res.UserPermissions = append(res.UserPermissions, userPermissionResponse)
+	// }
 	return res
 }
 

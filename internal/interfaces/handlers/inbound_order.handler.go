@@ -7,6 +7,7 @@ import (
 	validator_utils "github.com/Ardnh/be-warehouse-management/internal/utils/validator"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,13 +44,23 @@ func (h *InboundOrderHandler) FindByID(c fiber.Ctx) error {
 }
 func (h *InboundOrderHandler) Create(c fiber.Ctx) error {
 	var request dto.CreateInboundOrderRequest
+	warehouseID, ok := c.Locals("warehouse_id").(string)
+	if !ok {
+		return responses.HandleError(c, fiber.ErrBadRequest)
+	}
+
 	if err := c.Bind().Body(&request); err != nil {
 		return responses.HandleError(c, fiber.ErrBadRequest)
 	}
 	if err := h.validator.Struct(&request); err != nil {
 		return responses.NewErrorResponse(c, fiber.StatusBadRequest, fiber.ErrBadRequest.Message, validator_utils.FormatValidationErrors(err))
 	}
-	if err := h.service.Create(c.Context(), request); err != nil {
+
+	warehouseIDUUID, err := uuid.Parse(warehouseID)
+	if err != nil {
+		return responses.HandleError(c, err)
+	}
+	if err := h.service.Create(c.Context(), warehouseIDUUID, request); err != nil {
 		return responses.HandleError(c, err)
 	}
 	return responses.NewSuccessResponse(c, fiber.StatusCreated, "Inbound order created successfully", nil)

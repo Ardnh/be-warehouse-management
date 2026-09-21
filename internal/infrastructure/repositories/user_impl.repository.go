@@ -47,9 +47,16 @@ func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*en
 
 func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string) (*entity.User, error) {
 	var user entity.User
-	if err := Conn(ctx, r.db).Where("username = ?", username).First(&user).Error; err != nil {
+
+	err := Conn(ctx, r.db).
+		Preload("UserRoles").
+		Where("username = ?", username).
+		First(&user).Error
+
+	if err != nil {
 		return nil, err
 	}
+
 	return &user, nil
 }
 

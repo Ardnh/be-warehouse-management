@@ -65,8 +65,10 @@ func main() {
 	// Repository
 	tx := repositories.NewTxManager(db)
 	userRepository := repositories.NewUserRepository(db, redisDb)
+	loginSessionRepository := repositories.NewLoginSessionRepository(db)
 	userRoleRepository := repositories.NewUserRoleRepository(db)
 	customerRepository := repositories.NewCustomerRepository(db, redisDb)
+	customerWarehouseRepository := repositories.NewCustomerWarehouseRepository(db, redisDb)
 	warehouseRepository := repositories.NewWarehouseRepository(db)
 	uomRepository := repositories.NewUomRepository(db)
 	zoneRepository := repositories.NewZoneRepository(db)
@@ -77,13 +79,21 @@ func main() {
 	handlingUnitRepository := repositories.NewHandlingUnitRepository(db)
 	handlingUnitItemRepository := repositories.NewHandlingUnitItemRepository(db)
 	productRepository := repositories.NewProductRepository(db)
+	productWarehouseRepository := repositories.NewProductWarehouseRepository(db, redisDb)
 	roleRepository := repositories.NewRoleRepository(db)
 	receivingRepository := repositories.NewReceivingRepository(db)
 	receivingItemRepository := repositories.NewReceivingItemRepository(db)
 	permissionRepository := repositories.NewPermissionRepository(db)
 
 	// Service
-	authService := services.NewAuthService(userRepository, log, cfg)
+	authService := services.NewAuthService(
+		userRepository,
+		loginSessionRepository,
+		userRoleRepository,
+		warehouseRepository,
+		log,
+		cfg,
+	)
 	userService := services.NewUserService(userRepository, userRoleRepository, log, tx)
 	customerService := services.NewCustomerService(customerRepository, log)
 	warehouseService := services.NewWarehouseService(warehouseRepository, log)
@@ -91,7 +101,16 @@ func main() {
 	zoneService := services.NewZoneService(zoneRepository, log)
 	rackService := services.NewRackService(rackRepository, log)
 	storageLocationService := services.NewStorageLocationService(storageLocationRepository, log)
-	inboundOrderService := services.NewInboundOrderService(inboundOrderRepository, inboundOrderItemRepository, tx, log)
+	inboundOrderService := services.NewInboundOrderService(
+		inboundOrderRepository,
+		inboundOrderItemRepository,
+		customerWarehouseRepository,
+		productWarehouseRepository,
+		productRepository,
+		customerRepository,
+		tx,
+		log,
+	)
 	inboundOrderItemService := services.NewInboundOrderItemService(inboundOrderItemRepository, log)
 	handlingUnitService := services.NewHandlingUnitService(handlingUnitRepository, log)
 	handlingUnitItemService := services.NewHandlingUnitItemService(handlingUnitItemRepository, log)

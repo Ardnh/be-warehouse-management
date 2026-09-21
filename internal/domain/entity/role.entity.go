@@ -20,13 +20,13 @@ type Role struct {
 	Users []User `gorm:"many2many:user_roles;joinForeignKey:RoleID;joinReferences:UserID"`
 }
 
+func (Role) TableName() string {
+	return "roles"
+}
+
 func (r *Role) BeforeCreate(tx *gorm.DB) error {
 	if r.ID == uuid.Nil {
 		r.ID = uuid.New()
 	}
 	return nil
-}
-
-func (Role) TableName() string {
-	return "roles"
 }

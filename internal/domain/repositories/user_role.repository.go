@@ -11,6 +11,7 @@ type UserRoleRepository interface {
 	AssignRoles(ctx context.Context, userID uuid.UUID, roleIDs []uuid.UUID) error
 	FindByUserID(ctx context.Context, userID uuid.UUID) ([]entity.UserRole, error)
 	FindByRoleID(ctx context.Context, roleID uuid.UUID) ([]entity.UserRole, error)
+	FindByUserAndWarehouse(ctx context.Context, userID uuid.UUID, warehouseID uuid.UUID) (*entity.UserRole, error)
 	FindByUserAndRole(ctx context.Context, userID uuid.UUID, roleID uuid.UUID) (*entity.UserRole, error)
 	Create(ctx context.Context, userRole entity.UserRole) error
 	Delete(ctx context.Context, userID uuid.UUID, roleID uuid.UUID) error

@@ -12,6 +12,7 @@ type UserRole struct {
 	RoleID      uuid.UUID `gorm:"type:uuid;primaryKey"`
 	WarehouseID uuid.UUID `gorm:"type:uuid"`
 	CreatedAt   time.Time
+	Status      string `gorm:"type:varchar(20);not null;default:'ACTIVE'"`
 
 	User      *User      `gorm:"foreignKey:UserID"`
 	Role      *Role      `gorm:"foreignKey:RoleID"`

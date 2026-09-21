@@ -43,9 +43,10 @@ func SetupAPIRoutes(
 	// Auth
 	api.Post("/register", authHandler.Register)
 	api.Post("/login", authHandler.Login)
+	api.Get("/select-warehouse", authMiddleware.Authenticate(), authMiddleware.RequireLoginSelectionToken(), authHandler.SelectWarehouse)
 
 	// User
-	user := api.Group("/user", authMiddleware.Authenticate())
+	user := api.Group("/user", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	user.Get("/profile", userHandler.GetProfile)
 	user.Get("/", userHandler.FindAll)
 	user.Get("/:id", userHandler.FindByID)
@@ -54,7 +55,7 @@ func SetupAPIRoutes(
 	user.Delete("/:id", userHandler.Delete)
 
 	// Customer
-	customer := api.Group("/customer", authMiddleware.Authenticate())
+	customer := api.Group("/customer", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	customer.Get("/", customerHandler.FindAll)
 	customer.Get("/:id", customerHandler.FindById)
 	customer.Post("/", customerHandler.Create)
@@ -62,7 +63,7 @@ func SetupAPIRoutes(
 	customer.Delete("/:id", customerHandler.Delete)
 
 	// Warehouse
-	warehouse := api.Group("/warehouse", authMiddleware.Authenticate())
+	warehouse := api.Group("/warehouse", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	warehouse.Get("/", warehouseHandler.FindAll)
 	warehouse.Get("/:id", warehouseHandler.FindByID)
 	warehouse.Post("/", warehouseHandler.Create)
@@ -70,7 +71,7 @@ func SetupAPIRoutes(
 	warehouse.Delete("/:id", warehouseHandler.Delete)
 
 	// UOM
-	uom := api.Group("/uom", authMiddleware.Authenticate())
+	uom := api.Group("/uom", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	uom.Get("/", uomHandler.FindAll)
 	uom.Get("/:id", uomHandler.FindByID)
 	uom.Post("/", uomHandler.Create)
@@ -78,7 +79,7 @@ func SetupAPIRoutes(
 	uom.Delete("/:id", uomHandler.Delete)
 
 	// Zone
-	zone := api.Group("/zone", authMiddleware.Authenticate())
+	zone := api.Group("/zone", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	zone.Get("/", zoneHandler.FindAll)
 	zone.Get("/:id", zoneHandler.FindByID)
 	zone.Post("/", zoneHandler.Create)
@@ -86,7 +87,7 @@ func SetupAPIRoutes(
 	zone.Delete("/:id", zoneHandler.Delete)
 
 	// Rack
-	rack := api.Group("/rack", authMiddleware.Authenticate())
+	rack := api.Group("/rack", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	rack.Get("/", rackHandler.FindAll)
 	rack.Get("/:id", rackHandler.FindByID)
 	rack.Post("/", rackHandler.Create)
@@ -94,7 +95,7 @@ func SetupAPIRoutes(
 	rack.Delete("/:id", rackHandler.Delete)
 
 	// Storage Location
-	storageLocation := api.Group("/storage-location", authMiddleware.Authenticate())
+	storageLocation := api.Group("/storage-location", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	storageLocation.Get("/", storageLocationHandler.FindAll)
 	storageLocation.Get("/:id", storageLocationHandler.FindByID)
 	storageLocation.Post("/", storageLocationHandler.Create)
@@ -102,7 +103,7 @@ func SetupAPIRoutes(
 	storageLocation.Delete("/:id", storageLocationHandler.Delete)
 
 	// Inbound Order
-	inboundOrder := api.Group("/inbound-order", authMiddleware.Authenticate())
+	inboundOrder := api.Group("/inbound-order", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	inboundOrder.Get("/", inboundOrderHandler.FindAll)
 	inboundOrder.Get("/:id", inboundOrderHandler.FindByID)
 	inboundOrder.Post("/", inboundOrderHandler.Create)
@@ -119,7 +120,7 @@ func SetupAPIRoutes(
 	inboundOrderItem.Delete("/:item_id", inboundOrderItemHandler.Delete)
 
 	// Handling Unit
-	handlingUnit := api.Group("/handling-unit", authMiddleware.Authenticate())
+	handlingUnit := api.Group("/handling-unit", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	handlingUnit.Get("/", handlingUnitHandler.FindAll)
 	handlingUnit.Get("/:id", handlingUnitHandler.FindByID)
 	handlingUnit.Post("/", handlingUnitHandler.Create)
@@ -135,7 +136,7 @@ func SetupAPIRoutes(
 	handlingUnitItem.Delete("/:item_id", handlingUnitItemHandler.Delete)
 
 	// Product
-	product := api.Group("/product", authMiddleware.Authenticate())
+	product := api.Group("/product", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	product.Get("/", productHandler.FindAll)
 	product.Get("/:id", productHandler.FindByID)
 	product.Post("/", productHandler.Create)
@@ -143,7 +144,7 @@ func SetupAPIRoutes(
 	product.Delete("/:id", productHandler.Delete)
 
 	// Role
-	role := api.Group("/role", authMiddleware.Authenticate())
+	role := api.Group("/role", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	role.Get("/", roleHandler.FindAll)
 	role.Get("/:id", roleHandler.FindByID)
 	role.Post("/", roleHandler.Create)
@@ -151,7 +152,7 @@ func SetupAPIRoutes(
 	role.Delete("/:id", roleHandler.Delete)
 
 	// Receiving
-	receiving := api.Group("/receiving", authMiddleware.Authenticate())
+	receiving := api.Group("/receiving", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	receiving.Get("/", receivingHandler.FindAll)
 	receiving.Get("/:id", receivingHandler.FindByID)
 	receiving.Post("/", receivingHandler.Create)
@@ -159,7 +160,7 @@ func SetupAPIRoutes(
 	receiving.Delete("/:id", receivingHandler.Delete)
 
 	// Receiving Item
-	receivingItem := receiving.Group("/:id/item", authMiddleware.Authenticate())
+	receivingItem := receiving.Group("/:id/item", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	receivingItem.Get("/", receivingItemHandler.FindAll)
 	receivingItem.Get("/:item_id", receivingItemHandler.FindByID)
 	receivingItem.Post("/", receivingItemHandler.Create)
@@ -167,7 +168,7 @@ func SetupAPIRoutes(
 	receivingItem.Delete("/:item_id", receivingItemHandler.Delete)
 
 	// Permission
-	permission := api.Group("/permission", authMiddleware.Authenticate())
+	permission := api.Group("/permission", authMiddleware.Authenticate(), authMiddleware.RequireAccessToken())
 	permission.Get("/", permissionHandler.FindAll)
 	permission.Get("/:id", permissionHandler.FindByID)
 	permission.Post("/", permissionHandler.Create)
