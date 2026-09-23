@@ -1,19 +1,16 @@
 package routes
 
 import (
-	"github.com/Ardnh/be-warehouse-management/internal/config"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/sirupsen/logrus"
 )
 
 func SetupAPIRoutes(
 	app *fiber.App,
-	log *logrus.Logger,
-	cfg *config.Config,
-	// enforcer *casbin.Enforcer,
+	authMiddleware *middleware.AuthMiddleware,
+	authzMiddleware *middleware.AuthorizationMiddleware,
 	validator *validator.Validate,
 	authHandler *handlers.AuthHandler,
 	customerHandler *handlers.CustomerHandler,
@@ -33,9 +30,6 @@ func SetupAPIRoutes(
 	permissionHandler *handlers.PermissionHandler,
 	userHandler *handlers.UserHandler,
 ) {
-	// Middleware
-	// casbinMw := middleware.NewCasbinMiddleware(enforcer, log)
-	authMiddleware := middleware.NewAuthMiddleware(log, cfg)
 
 	// API v1 group
 	api := app.Group("/api/v1")
@@ -47,11 +41,11 @@ func SetupAPIRoutes(
 	// User
 	user := api.Group("/user", authMiddleware.Authenticate())
 	user.Get("/profile", userHandler.GetProfile)
-	user.Get("/", userHandler.FindAll)
+	user.Get("/", authzMiddleware.Require("user", "read"), userHandler.FindAll)
 	user.Get("/:id", userHandler.FindByID)
-	user.Post("/", userHandler.Create)
-	user.Put("/:id", userHandler.Update)
-	user.Delete("/:id", userHandler.Delete)
+	user.Post("/", authzMiddleware.Require("user", "create"), userHandler.Create)
+	user.Put("/:id", authzMiddleware.Require("user", "update"), userHandler.Update)
+	user.Delete("/:id", authzMiddleware.Require("user", "delete"), userHandler.Delete)
 
 	// Customer
 	customer := api.Group("/customer", authMiddleware.Authenticate())

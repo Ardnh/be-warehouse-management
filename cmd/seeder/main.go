@@ -54,5 +54,16 @@ func main() {
 		log.Fatalf("❌ Failed to seed products: %v", err)
 	}
 
+	// Seed roles
+	systemAdminRole, err := seeder.SeedSystemAdminRole(db)
+	if err != nil {
+		log.Fatalf("❌ Failed to seed system admin role: %v", err)
+	}
+
+	// Seed roles permissions
+	if err := seeder.SeedSystemAdminPermissions(db, systemAdminRole); err != nil {
+		log.Fatalf("❌ Failed to seed system admin permissions: %v", err)
+	}
+
 	log.Println("Done!")
 }

@@ -99,3 +99,13 @@ func (s *PermissionServiceImpl) Delete(ctx context.Context, id uuid.UUID) error 
 
 	return nil
 }
+
+func (s *PermissionServiceImpl) HasPermission(ctx context.Context, userID uuid.UUID, resource string, action string) (bool, error) {
+
+	return s.permissionRepository.HasPermission(
+		ctx,
+		userID,
+		resource,
+		action,
+	)
+}

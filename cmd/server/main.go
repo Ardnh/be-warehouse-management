@@ -135,10 +135,14 @@ func main() {
 	receivingItemHandler := handlers.NewReceivingItemHandler(receivingItemService, validator, log)
 	permissionHandler := handlers.NewPermissionHandler(permissionService, validator, log)
 
+	// Middleware
+	authMiddleware := middleware.NewAuthMiddleware(log, cfg)
+	authzMiddleware := middleware.NewAuthorizationMiddleware(permissionService)
+
 	routes.SetupAPIRoutes(
 		app,
-		log,
-		cfg,
+		authMiddleware,
+		authzMiddleware,
 		validator,
 		authHandler,
 		customerHandler,

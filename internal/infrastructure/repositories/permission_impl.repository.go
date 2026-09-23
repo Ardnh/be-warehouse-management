@@ -83,3 +83,30 @@ func applyPermissionListFilter(query *gorm.DB, filter domainrepositories.Filter,
 	// }
 	return query.Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize)
 }
+
+func (r *PermissionRepositoryImpl) HasPermission(ctx context.Context, userID uuid.UUID, resource string, action string) (bool, error) {
+
+	var count int64
+
+	err := Conn(ctx, r.db).
+		Table("user_assignments ua").
+		Joins("JOIN roles r ON r.id = ua.role_id").
+		Joins("JOIN role_permissions rp ON rp.role_id = r.id").
+		Joins("JOIN permissions p ON p.id = rp.permission_id").
+		Where(`
+            ua.user_id = ?
+            AND p.resource = ?
+            AND p.action = ?
+        `,
+			userID,
+			resource,
+			action,
+		).
+		Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}

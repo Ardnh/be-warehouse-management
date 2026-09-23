@@ -37,17 +37,6 @@ func SeedUser(db *gorm.DB) error {
 			return err
 		}
 
-		// --- Role ---
-		role := entity.Role{
-			Name:        "system-admin",
-			Code:        "SYSTEM_ADMIN",
-			Description: "System admin role",
-		}
-		if err := tx.Where("code = ?", "SYSTEM_ADMIN").
-			FirstOrCreate(&role, entity.Role{Code: "SYSTEM_ADMIN"}).Error; err != nil {
-			return err
-		}
-
 		return nil
 	})
 }
