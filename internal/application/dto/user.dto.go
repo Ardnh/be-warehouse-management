@@ -9,12 +9,13 @@ import (
 
 // dto/user.go
 type CreateUserRequest struct {
-	Username string      `json:"username" validate:"required,alphanum,min=3,max=50"`
-	Email    string      `json:"email" validate:"required,email,max=150"`
-	Password string      `json:"password" validate:"required,min=8,max=72"`
-	FullName string      `json:"full_name" validate:"required,max=150"`
-	Status   string      `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE"`
-	RoleIDs  []uuid.UUID `json:"role_ids" validate:"omitempty,dive,required"`
+	Username   string      `json:"username" validate:"required,alphanum,min=3,max=50"`
+	Email      string      `json:"email" validate:"required,email,max=150"`
+	Password   string      `json:"password" validate:"required,min=8,max=72"`
+	FullName   string      `json:"full_name" validate:"required,max=150"`
+	Status     string      `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE"`
+	LocationID uuid.UUID   `json:"location_id" validate:"required"`
+	RoleIDs    []uuid.UUID `json:"role_ids" validate:"omitempty,dive,required"`
 }
 
 type UpdateUserRequest struct {
@@ -36,7 +37,8 @@ type LoginRequest struct {
 }
 
 type AssignRolesRequest struct {
-	RoleIDs []uuid.UUID `json:"role_ids" validate:"required,min=1,dive,required"`
+	LocationID uuid.UUID   `json:"location_id" validate:"required"`
+	RoleIDs    []uuid.UUID `json:"role_ids" validate:"required,min=1,dive,required"`
 }
 
 type User struct {
@@ -46,18 +48,10 @@ type User struct {
 	FullName        string                   `json:"full_name"`
 	Status          string                   `json:"status"`
 	Roles           []RoleResponse           `json:"roles,omitempty"`
-	UserRoles       []UserRoleResponse       `json:"user_roles,omitempty"`
+	Assignments     []*UserAssignmentDTO     `json:"assignments,omitempty"`
 	UserPermissions []UserPermissionResponse `json:"user_permissions,omitempty"`
 	CreatedAt       time.Time                `json:"created_at"`
 	UpdatedAt       time.Time                `json:"updated_at"`
-}
-
-type UserRoleResponse struct {
-	RoleID      uuid.UUID     `json:"role_id"`
-	WarehouseID uuid.UUID     `json:"warehouse_id"`
-	Role        *RoleResponse `json:"role,omitempty"`
-	Warehouse   *Warehouse    `json:"warehouse,omitempty"`
-	CreatedAt   time.Time     `json:"created_at"`
 }
 
 type UserPermissionResponse struct {
@@ -66,6 +60,10 @@ type UserPermissionResponse struct {
 }
 
 func ToUserDTO(u *entity.User) User {
+	if u == nil {
+		return User{}
+	}
+
 	res := User{
 		ID:        u.ID,
 		Username:  u.Username,
@@ -76,36 +74,14 @@ func ToUserDTO(u *entity.User) User {
 		UpdatedAt: u.UpdatedAt,
 	}
 
-	for _, r := range u.Roles {
-		res.Roles = append(res.Roles, NewRoleResponse(r))
+	for i := range u.Assignments {
+		assignment := &u.Assignments[i]
+		res.Assignments = append(res.Assignments, ToUserAssignmentDTO(assignment))
+		if assignment.Role != nil {
+			res.Roles = append(res.Roles, NewRoleResponse(*assignment.Role))
+		}
 	}
 
-	for _, userRole := range u.UserRoles {
-		userRoleResponse := UserRoleResponse{
-			RoleID:      userRole.RoleID,
-			WarehouseID: userRole.WarehouseID,
-			CreatedAt:   userRole.CreatedAt,
-		}
-		if userRole.Role != nil {
-			roleResponse := NewRoleResponse(*userRole.Role)
-			userRoleResponse.Role = &roleResponse
-		}
-		if userRole.Warehouse != nil {
-			warehouseResponse := NewWarehouseResponse(*userRole.Warehouse)
-			userRoleResponse.Warehouse = &warehouseResponse
-		}
-		res.UserRoles = append(res.UserRoles, userRoleResponse)
-	}
-
-	// for _, userPermission := range u.UserPermissions {
-	// 	userPermissionResponse := UserPermissionResponse{
-	// 		PermissionID: userPermission.PermissionID,
-	// 	}
-	// 	if userPermission.Permission != nil {
-	// 		userPermissionResponse.Permission = ToPermissionDTO(userPermission.Permission)
-	// 	}
-	// 	res.UserPermissions = append(res.UserPermissions, userPermissionResponse)
-	// }
 	return res
 }
 

@@ -29,6 +29,11 @@ func main() {
 		log.Fatalf("❌ Failed to seed permissions: %v", err)
 	}
 
+	// Seed locations
+	if err := seeder.SeedLocations(db); err != nil {
+		log.Fatalf("❌ Failed to seed locations: %v", err)
+	}
+
 	// Seed user
 	if err := seeder.SeedUser(db); err != nil {
 		log.Fatalf("❌ Failed to seed user: %v", err)

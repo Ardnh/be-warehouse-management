@@ -126,89 +126,11 @@ func (am *AuthMiddleware) Authenticate() fiber.Handler {
 			)
 		}
 
-		tokenType, ok := claims["type"].(string)
-		if !ok || tokenType == "" {
-			am.log.WithFields(fields).
-				Warn("claim token type kosong")
-
-			return http.NewErrorResponse(
-				c,
-				fiber.StatusUnauthorized,
-				"Invalid token claims",
-				nil,
-			)
-		}
-
 		fields["user_id"] = userID
-		fields["token_type"] = tokenType
-		fields["user_type"] = claims["user_type"]
-		fields["warehouse_id"] = claims["warehouse_id"]
 
 		c.Locals("user_id", userID)
-		c.Locals("user_type", claims["user_type"])
-		c.Locals("warehouse_id", claims["warehouse_id"])
-		c.Locals("token_type", tokenType)
-		c.Locals("claims", claims)
 
 		am.log.WithFields(fields).Debug("autentikasi berhasil")
-
-		return c.Next()
-	}
-}
-
-func (am *AuthMiddleware) RequireLoginSelectionToken() fiber.Handler {
-	return func(c fiber.Ctx) error {
-		tokenType, ok := c.Locals("token_type").(string)
-
-		if !ok || tokenType != "LOGIN_SELECTION" {
-			am.log.WithFields(logrus.Fields{
-				"middleware": "RequireLoginSelectionToken",
-				"path":       c.Path(),
-			}).Warn("akses ditolak: token bukan login selection token")
-
-			return http.NewErrorResponse(
-				c,
-				fiber.StatusUnauthorized,
-				"Invalid token type",
-				nil,
-			)
-		}
-
-		return c.Next()
-	}
-}
-
-func (am *AuthMiddleware) RequireAccessToken() fiber.Handler {
-	return func(c fiber.Ctx) error {
-		tokenType, ok := c.Locals("token_type").(string)
-
-		if !ok || tokenType != "ACCESS" {
-			am.log.WithFields(logrus.Fields{
-				"middleware": "RequireAccessToken",
-				"path":       c.Path(),
-			}).Warn("akses ditolak: token bukan access token")
-
-			return http.NewErrorResponse(
-				c,
-				fiber.StatusUnauthorized,
-				"Invalid token type",
-				nil,
-			)
-		}
-
-		warehouseID, ok := c.Locals("warehouse_id").(string)
-		if !ok || warehouseID == "" {
-			am.log.WithFields(logrus.Fields{
-				"middleware": "RequireAccessToken",
-			}).Warn("akses ditolak: warehouse_id tidak ditemukan")
-
-			return http.NewErrorResponse(
-				c,
-				fiber.StatusUnauthorized,
-				"Invalid token claims",
-				nil,
-			)
-		}
 
 		return c.Next()
 	}

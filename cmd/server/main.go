@@ -65,8 +65,7 @@ func main() {
 	// Repository
 	tx := repositories.NewTxManager(db)
 	userRepository := repositories.NewUserRepository(db, redisDb)
-	loginSessionRepository := repositories.NewLoginSessionRepository(db)
-	userRoleRepository := repositories.NewUserRoleRepository(db)
+	userAssignmentRepository := repositories.NewUserAssignmentRepository(db)
 	customerRepository := repositories.NewCustomerRepository(db, redisDb)
 	customerWarehouseRepository := repositories.NewCustomerWarehouseRepository(db, redisDb)
 	warehouseRepository := repositories.NewWarehouseRepository(db)
@@ -88,13 +87,10 @@ func main() {
 	// Service
 	authService := services.NewAuthService(
 		userRepository,
-		loginSessionRepository,
-		userRoleRepository,
-		warehouseRepository,
 		log,
 		cfg,
 	)
-	userService := services.NewUserService(userRepository, userRoleRepository, log, tx)
+	userService := services.NewUserService(userRepository, userAssignmentRepository, log, tx)
 	customerService := services.NewCustomerService(customerRepository, log)
 	warehouseService := services.NewWarehouseService(warehouseRepository, log)
 	uomService := services.NewUomService(uomRepository, log)

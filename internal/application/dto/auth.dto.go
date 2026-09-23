@@ -10,13 +10,6 @@ type LoginResponseDto struct {
 	ExpireDate string `json:"expire_date"`
 }
 
-type LoginTempResponseDto struct {
-	Token                     string         `json:"token"`
-	ExpireDate                string         `json:"expire_date"`
-	RequireWarehouseSelection bool           `json:"require_warehouse_selection"`
-	Warehouses                []*UserRoleDto `json:"warehouses"`
-}
-
 type RegisterRequestDto struct {
 	FullName string `json:"full_name" validate:"required"`
 	Username string `json:"username" validate:"required"`

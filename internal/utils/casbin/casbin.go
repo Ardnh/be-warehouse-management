@@ -14,11 +14,7 @@ func InitCasbin(modelPath string, db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 	return casbin.NewSyncedEnforcer(modelPath, adapter)
 }
 
-func GetUserPermissions(
-	enforcer *casbin.Enforcer,
-	userID string,
-	warehouseID string,
-) []string {
+func GetUserPermissions(enforcer *casbin.Enforcer, userID string, warehouseID string) []string {
 	permissions, err := enforcer.GetImplicitPermissionsForUser(
 		userID,
 		warehouseID,
@@ -48,11 +44,7 @@ func GetUserPermissions(
 	return result
 }
 
-func GetUserRoles(
-	enforcer *casbin.Enforcer,
-	userID string,
-	warehouseID string,
-) []string {
+func GetUserRoles(enforcer *casbin.Enforcer, userID string, warehouseID string) []string {
 	roles, err := enforcer.GetRolesForUser(
 		userID,
 		warehouseID,

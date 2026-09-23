@@ -16,6 +16,10 @@ type Uom struct {
 	UpdatedAt time.Time `gorm:"index"`
 }
 
+func (Uom) TableName() string {
+	return "uoms"
+}
+
 func (u *Uom) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()

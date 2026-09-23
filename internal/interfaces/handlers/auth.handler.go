@@ -7,7 +7,6 @@ import (
 	validator_utils "github.com/Ardnh/be-warehouse-management/internal/utils/validator"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -91,43 +90,4 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 
 	h.log.WithFields(fields).Info("registrasi berhasil")
 	return responses.NewSuccessResponse(c, fiber.StatusCreated, "Register successful", nil)
-}
-
-func (h *AuthHandler) SelectWarehouse(c fiber.Ctx) error {
-	fields := h.baseFields(c, "select-warehouse")
-
-	user_id, ok := c.Locals("user_id").(string)
-	if !ok {
-		return responses.NewErrorResponse(c, fiber.ErrUnauthorized.Code, fiber.ErrUnauthorized.Message, nil)
-	}
-
-	var req dto.SelectWarehouseRequestDto
-	if err := c.Bind().Body(&req); err != nil {
-		h.log.WithFields(fields).WithError(err).Warn("gagal parsing body select warehouse")
-		return responses.HandleError(c, err)
-	}
-
-	if err := h.validator.Struct(&req); err != nil {
-		h.log.WithFields(fields).WithError(err).Warn("validasi request register gagal")
-		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, validator_utils.FormatValidationErrors(err))
-	}
-
-	warehouseID, err := uuid.Parse(req.WarehouseId)
-	if err != nil {
-		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, nil)
-	}
-
-	userIdUUID, err := uuid.Parse(user_id)
-	if err != nil {
-		return responses.NewErrorResponse(c, fiber.ErrBadRequest.Code, fiber.ErrBadRequest.Message, nil)
-	}
-
-	result, err := h.authService.LoginSelection(c.Context(), userIdUUID, warehouseID)
-	if err != nil {
-		h.log.WithFields(fields).WithError(err).Error("gagal memilih gudang")
-		return responses.HandleError(c, err)
-	}
-
-	h.log.WithFields(fields).Info("gudang berhasil dipilih")
-	return responses.NewSuccessResponse(c, fiber.StatusOK, "Select warehouse successful", result)
 }

@@ -17,7 +17,7 @@ type Role struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 
-	Users []User `gorm:"many2many:user_roles;joinForeignKey:RoleID;joinReferences:UserID"`
+	Assignments []UserAssignment `gorm:"foreignKey:RoleID;references:ID"`
 }
 
 func (Role) TableName() string {

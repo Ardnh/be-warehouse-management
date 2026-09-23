@@ -14,18 +14,18 @@ import (
 )
 
 type UserServiceImpl struct {
-	UserRepository     repositories.UserRepository
-	UserRoleRepository repositories.UserRoleRepository
-	tx                 repositories.TxManager
-	log                *logrus.Logger
+	UserRepository           repositories.UserRepository
+	UserAssignmentRepository repositories.UserAssignmentRepository
+	tx                       repositories.TxManager
+	log                      *logrus.Logger
 }
 
-func NewUserService(userRepository repositories.UserRepository, userRoleRepository repositories.UserRoleRepository, log *logrus.Logger, tx repositories.TxManager) services.UserService {
+func NewUserService(userRepository repositories.UserRepository, userAssignmentRepository repositories.UserAssignmentRepository, log *logrus.Logger, tx repositories.TxManager) services.UserService {
 	return &UserServiceImpl{
-		UserRepository:     userRepository,
-		UserRoleRepository: userRoleRepository,
-		tx:                 tx,
-		log:                log,
+		UserRepository:           userRepository,
+		UserAssignmentRepository: userAssignmentRepository,
+		tx:                       tx,
+		log:                      log,
 	}
 }
 
@@ -76,6 +76,7 @@ func (s *UserServiceImpl) Create(ctx context.Context, user dto.CreateUserRequest
 	return s.tx.Do(ctx, func(ctx context.Context) error {
 
 		userEntity := entity.User{
+			ID:           uuid.New(),
 			Username:     user.Username,
 			Email:        user.Email,
 			PasswordHash: string(hashedPassword),
@@ -87,7 +88,7 @@ func (s *UserServiceImpl) Create(ctx context.Context, user dto.CreateUserRequest
 			return err
 		}
 
-		return s.UserRoleRepository.AssignRoles(ctx, userEntity.ID, user.RoleIDs)
+		return s.UserAssignmentRepository.AssignRoles(ctx, userEntity.ID, user.LocationID, user.RoleIDs)
 	})
 }
 

@@ -49,7 +49,8 @@ func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string
 	var user entity.User
 
 	err := Conn(ctx, r.db).
-		Preload("UserRoles").
+		Preload("Assignments.Role").
+		Preload("Assignments.Location").
 		Where("username = ?", username).
 		First(&user).Error
 
@@ -63,10 +64,8 @@ func (r *UserRepositoryImpl) FindByUsername(ctx context.Context, username string
 func (r *UserRepositoryImpl) FindByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
 	var user entity.User
 	if err := Conn(ctx, r.db).
-		Preload("Roles").
-		Preload("UserRoles.Role").
-		Preload("UserRoles.Warehouse").
-		Preload("UserPermissions.Permission").
+		Preload("Assignments.Role").
+		Preload("Assignments.Location").
 		Where("id = ?", userID).
 		First(&user).Error; err != nil {
 		return nil, err

@@ -13,11 +13,11 @@ func Migrate(db *gorm.DB) error {
 
 	err := db.AutoMigrate(
 		&entity.User{},
+		&entity.Location{},
 		&entity.Role{},
-		&entity.UserRole{},
+		&entity.UserAssignment{},
 		&entity.Permission{},
 		&entity.RolePermission{},
-		&entity.LoginSession{},
 
 		// Master data
 		&entity.Customer{},

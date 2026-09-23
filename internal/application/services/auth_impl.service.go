@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/Ardnh/be-warehouse-management/internal/application/dto"
 	"github.com/Ardnh/be-warehouse-management/internal/config"
@@ -18,26 +17,20 @@ import (
 )
 
 type AuthServiceImpl struct {
-	userRepository      repositories.UserRepository
-	sessionRepository   repositories.LoginSessionRepository
-	userRoleRepository  repositories.UserRoleRepository
-	warehouseRepository repositories.WarehouseRepository
-	log                 *logrus.Logger
-	appConfig           *config.Config
+	userRepository repositories.UserRepository
+	log            *logrus.Logger
+	appConfig      *config.Config
 }
 
-func NewAuthService(userRepository repositories.UserRepository, sessionRepository repositories.LoginSessionRepository, userRoleResponse repositories.UserRoleRepository, warehouseRepository repositories.WarehouseRepository, log *logrus.Logger, appConfig *config.Config) services.AuthService {
+func NewAuthService(userRepository repositories.UserRepository, log *logrus.Logger, appConfig *config.Config) services.AuthService {
 	return &AuthServiceImpl{
-		userRepository:      userRepository,
-		sessionRepository:   sessionRepository,
-		userRoleRepository:  userRoleResponse,
-		warehouseRepository: warehouseRepository,
-		log:                 log,
-		appConfig:           appConfig,
+		userRepository: userRepository,
+		log:            log,
+		appConfig:      appConfig,
 	}
 }
 
-func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*dto.LoginTempResponseDto, error) {
+func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*dto.LoginResponseDto, error) {
 	user, err := s.userRepository.FindByUsername(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, fiber.ErrNotFound) {
@@ -54,28 +47,8 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*
 
 	secretKey := []byte(s.appConfig.App.JWTSecret)
 
-	// Find user role
-	userRole, err := s.userRoleRepository.FindByUserID(ctx, user.ID)
-	if err != nil {
-		return nil, fiber.ErrInternalServerError
-	}
-
-	userRoleDtos := dto.ToUserRoleDtos(userRole)
-	if len(userRoleDtos) == 0 {
-		return nil, fiber.ErrUnauthorized
-	}
-
-	// Create login session
-	now := time.Now()
-	session := &entity.LoginSession{
-		UserID:    user.ID,
-		ExpiresAt: now.Add(5 * time.Minute),
-		CreatedAt: now,
-	}
-	s.sessionRepository.Create(ctx, session)
-
 	// Generate temporary token
-	token, expiredTimeISO, err := utils.GenerateTempToken(secretKey, user.ID.String())
+	token, expiredTimeISO, err := utils.GenerateToken(secretKey, user.ID.String())
 	if err != nil {
 		s.log.WithFields(logrus.Fields{
 			"user_id": user.ID.String(),
@@ -86,66 +59,9 @@ func (s *AuthServiceImpl) Login(ctx context.Context, req dto.LoginRequestDto) (*
 
 	s.log.WithField("user_id", user.ID).Info("login successful")
 
-	isRequireWarehouseSelection := len(userRoleDtos) == 1
-	return &dto.LoginTempResponseDto{
-		Token:                     *token,
-		ExpireDate:                *expiredTimeISO,
-		RequireWarehouseSelection: !isRequireWarehouseSelection,
-		Warehouses:                userRoleDtos,
-	}, nil
-}
-
-func (s *AuthServiceImpl) LoginSelection(ctx context.Context, userID uuid.UUID, warehouseID uuid.UUID) (*dto.LoginTempResponseDto, error) {
-
-	// 1. Get user
-	user, err := s.userRepository.FindByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	// 2. User must be active
-	if user.Status != "ACTIVE" {
-		return nil, fiber.ErrUnauthorized
-	}
-
-	// 3. Get warehouse
-	warehouse, err := s.warehouseRepository.FindByID(ctx, warehouseID)
-	if err != nil {
-		return nil, err
-	}
-
-	// 4. Warehouse must be active
-	if warehouse.Status != "ACTIVE" {
-		return nil, fiber.ErrUnauthorized
-	}
-
-	// 5. Check user assignment
-	_, errFindUserWarehouse := s.userRoleRepository.FindByUserAndWarehouse(
-		ctx,
-		userID,
-		warehouseID,
-	)
-
-	if errFindUserWarehouse != nil {
-		return nil, fiber.ErrUnauthorized
-	}
-
-	// 6. Generate access token
-	secretKey := []byte(s.appConfig.App.JWTSecret)
-	accessToken, expiresIn, err := utils.GenerateToken(
-		secretKey,
-		userID.String(),
-		warehouseID.String(),
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	// 7. Return final token
-	return &dto.LoginTempResponseDto{
-		Token:      *accessToken,
-		ExpireDate: *expiresIn,
+	return &dto.LoginResponseDto{
+		Token:      *token,
+		ExpireDate: *expiredTimeISO,
 	}, nil
 }
 
