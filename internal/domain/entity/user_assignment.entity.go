@@ -29,5 +29,7 @@ func (u *UserAssignment) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()
 	}
+
+	u.CreatedAt = time.Now()
 	return nil
 }

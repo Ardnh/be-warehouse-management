@@ -7,7 +7,6 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/config"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/database/postgresql"
 	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/migration"
-	"github.com/Ardnh/be-warehouse-management/internal/infrastructure/seeder"
 	"github.com/joho/godotenv"
 )
 
@@ -27,17 +26,6 @@ func main() {
 	log.Println("Running migration...")
 	if err := migration.Migrate(db); err != nil {
 		log.Fatal(err)
-	}
-
-	// Seed permission
-	log.Println("Running seeder...")
-	if err := seeder.SeedPermissions(db); err != nil {
-		log.Fatalf("❌ Failed to seed permissions: %v", err)
-	}
-
-	// Seed locations
-	if err := seeder.SeedLocations(db); err != nil {
-		log.Fatalf("❌ Failed to seed locations: %v", err)
 	}
 
 	log.Println("Done!")

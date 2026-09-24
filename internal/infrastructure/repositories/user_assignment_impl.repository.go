@@ -38,7 +38,7 @@ func (r *UserAssignmentRepositoryImpl) FindByUserID(ctx context.Context, userID 
 		Preload("Role").
 		Preload("Location").
 		Where("user_id = ?", userID).
-		Find(&assignments).Error; err != nil {
+		First(&assignments).Error; err != nil {
 		return nil, err
 	}
 	return assignments, nil

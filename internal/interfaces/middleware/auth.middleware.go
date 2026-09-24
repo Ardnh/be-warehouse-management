@@ -127,9 +127,7 @@ func (am *AuthMiddleware) Authenticate() fiber.Handler {
 		}
 
 		fields["user_id"] = userID
-
 		c.Locals("user_id", userID)
-
 		am.log.WithFields(fields).Debug("autentikasi berhasil")
 
 		return c.Next()

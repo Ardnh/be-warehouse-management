@@ -31,9 +31,17 @@ type RoleResponse struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-func NewRoleResponse(r entity.Role) RoleResponse {
-	return RoleResponse{
-		ID: r.ID, Code: r.Code, Name: r.Name, Description: r.Description,
-		Status: r.Status, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
+func ToRoleResponse(r *entity.Role) *RoleResponse {
+	if r == nil {
+		return nil
+	}
+	return &RoleResponse{
+		ID:          r.ID,
+		Code:        r.Code,
+		Name:        r.Name,
+		Description: r.Description,
+		Status:      r.Status,
+		CreatedAt:   r.CreatedAt,
+		UpdatedAt:   r.UpdatedAt,
 	}
 }

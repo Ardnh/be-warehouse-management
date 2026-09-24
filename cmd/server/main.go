@@ -1,9 +1,6 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -18,7 +15,6 @@ import (
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/handlers"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/middleware"
 	"github.com/Ardnh/be-warehouse-management/internal/interfaces/routes"
-	"github.com/Ardnh/be-warehouse-management/internal/utils/casbin"
 )
 
 func main() {
@@ -28,11 +24,7 @@ func main() {
 	cfg := config.LoadConfig()
 	validator := validator.New()
 
-	workDir, err := os.Getwd()
-	if err != nil {
-		log.Fatal("Failed to get working directory:", err)
-	}
-	modelPath := filepath.Join(workDir, "internal/utils/casbin", "model.conf")
+	log.SetLevel(logrus.DebugLevel)
 
 	// Initialize database
 	db, err := postgresql.NewPostgresDB(cfg)
@@ -45,11 +37,11 @@ func main() {
 	defer redisDb.Close()
 
 	// Casbin
-	enforcer, err := casbin.InitCasbin(modelPath, db)
-	if err != nil {
-		log.Fatalf("❌ Failed to initialize Casbin: %v", err)
-	}
-	defer enforcer.SavePolicy()
+	// enforcer, err := casbin.InitCasbin(modelPath, db)
+	// if err != nil {
+	// 	log.Fatalf("❌ Failed to initialize Casbin: %v", err)
+	// }
+	// defer enforcer.SavePolicy()
 
 	requestTimer := middleware.NewRequestTimerMiddleware(log)
 	app.Use(requestTimer.Track())
@@ -69,6 +61,7 @@ func main() {
 	customerRepository := repositories.NewCustomerRepository(db, redisDb)
 	customerWarehouseRepository := repositories.NewCustomerWarehouseRepository(db, redisDb)
 	warehouseRepository := repositories.NewWarehouseRepository(db)
+	locationRepository := repositories.NewLocationRepository(db)
 	uomRepository := repositories.NewUomRepository(db)
 	zoneRepository := repositories.NewZoneRepository(db)
 	rackRepository := repositories.NewRackRepository(db)
@@ -82,7 +75,7 @@ func main() {
 	roleRepository := repositories.NewRoleRepository(db)
 	receivingRepository := repositories.NewReceivingRepository(db)
 	receivingItemRepository := repositories.NewReceivingItemRepository(db)
-	permissionRepository := repositories.NewPermissionRepository(db)
+	permissionRepository := repositories.NewPermissionRepository(db, log)
 
 	// Service
 	authService := services.NewAuthService(
@@ -93,6 +86,7 @@ func main() {
 	userService := services.NewUserService(userRepository, userAssignmentRepository, log, tx)
 	customerService := services.NewCustomerService(customerRepository, log)
 	warehouseService := services.NewWarehouseService(warehouseRepository, log)
+	locationService := services.NewLocationService(locationRepository, log)
 	uomService := services.NewUomService(uomRepository, log)
 	zoneService := services.NewZoneService(zoneRepository, log)
 	rackService := services.NewRackService(rackRepository, log)
@@ -121,6 +115,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService, validator, log)
 	customerHandler := handlers.NewCustomerHandler(customerService, validator, log)
 	warehouseHandler := handlers.NewWarehouseHandler(warehouseService, validator, log)
+	locationHandler := handlers.NewLocationHandler(locationService, validator, log)
 	uomHandler := handlers.NewUomHandler(uomService, validator, log)
 	zoneHandler := handlers.NewZoneHandler(zoneService, validator, log)
 	rackHandler := handlers.NewRackHandler(rackService, validator, log)
@@ -137,7 +132,7 @@ func main() {
 
 	// Middleware
 	authMiddleware := middleware.NewAuthMiddleware(log, cfg)
-	authzMiddleware := middleware.NewAuthorizationMiddleware(permissionService)
+	authzMiddleware := middleware.NewAuthorizationMiddleware(permissionService, log)
 
 	routes.SetupAPIRoutes(
 		app,
@@ -147,6 +142,7 @@ func main() {
 		authHandler,
 		customerHandler,
 		warehouseHandler,
+		locationHandler,
 		uomHandler,
 		zoneHandler,
 		rackHandler,

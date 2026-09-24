@@ -23,7 +23,7 @@ func NewPermissionService(permissionRepository repositories.PermissionRepository
 	}
 }
 
-func (s *PermissionServiceImpl) FindAll(ctx context.Context, filter dto.FilterDTO) ([]dto.PermissionResponseDTO, int64, error) {
+func (s *PermissionServiceImpl) FindAll(ctx context.Context, filter dto.FilterDTO) ([]*dto.PermissionResponse, int64, error) {
 
 	filterDomain := repositories.Filter{
 		Page:     filter.Page,
@@ -38,15 +38,15 @@ func (s *PermissionServiceImpl) FindAll(ctx context.Context, filter dto.FilterDT
 		return nil, 0, err
 	}
 
-	return dto.ToPermissionsDTO(permissions), total, nil
+	return dto.ToPermissionsResponse(permissions), total, nil
 }
 
-func (s *PermissionServiceImpl) FindByID(ctx context.Context, id uuid.UUID) (*dto.PermissionDTO, error) {
+func (s *PermissionServiceImpl) FindByID(ctx context.Context, id uuid.UUID) (*dto.PermissionResponse, error) {
 	permission, err := s.permissionRepository.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return dto.ToPermissionDTO(permission), nil
+	return dto.ToPermissionResponse(permission), nil
 }
 
 func (s *PermissionServiceImpl) Create(ctx context.Context, req dto.CreatePermissionRequest) error {

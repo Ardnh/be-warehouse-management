@@ -17,7 +17,7 @@ type User struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 
-	Assignments []UserAssignment `gorm:"foreignKey:UserID;references:ID"`
+	Assignments *UserAssignment `gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (User) TableName() string {

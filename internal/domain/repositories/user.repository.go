@@ -12,6 +12,7 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*entity.User, error)
 	FindByUsername(ctx context.Context, username string) (*entity.User, error)
 	FindByID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
+	FindProfileByID(ctx context.Context, userID uuid.UUID) (*entity.User, []*entity.RolePermission, error)
 	Create(ctx context.Context, user entity.User) error
 	Update(ctx context.Context, user entity.User) error
 	Delete(ctx context.Context, userID uuid.UUID) error

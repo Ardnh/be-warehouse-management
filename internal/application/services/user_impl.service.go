@@ -42,7 +42,7 @@ func (s *UserServiceImpl) FindAll(ctx context.Context, filterDto dto.FilterDTO) 
 		return nil, 0, err
 	}
 
-	userDtos := dto.ToUserDTOs(users)
+	userDtos := dto.ToUserResponses(users)
 	return userDtos, count, nil
 }
 
@@ -52,7 +52,7 @@ func (s *UserServiceImpl) FindByEmail(ctx context.Context, email string) (*dto.U
 		return nil, err
 	}
 
-	userDto := dto.ToUserDTO(user)
+	userDto := dto.ToUserResponse(user)
 	return &userDto, nil
 }
 
@@ -61,7 +61,16 @@ func (s *UserServiceImpl) FindByID(ctx context.Context, userID uuid.UUID) (*dto.
 	if err != nil {
 		return nil, err
 	}
-	userDto := dto.ToUserDTO(user)
+	userDto := dto.ToUserResponse(user)
+	return &userDto, nil
+}
+
+func (s *UserServiceImpl) FindProfileByID(ctx context.Context, userID uuid.UUID) (*dto.User, error) {
+	user, permission, err := s.UserRepository.FindProfileByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	userDto := dto.ToUserProfileResponse(user, permission)
 	return &userDto, nil
 }
 

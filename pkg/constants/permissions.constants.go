@@ -7,6 +7,7 @@ const (
 	ResourceUserPermission   = "user-permission"
 	ResourceCustomer         = "customer"
 	ResourceWarehouse        = "warehouse"
+	ResourceLocation         = "location"
 	ResourceUom              = "uoms"
 	ResourceZone             = "zone"
 	ResourceRack             = "rack"

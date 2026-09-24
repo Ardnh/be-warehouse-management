@@ -30,12 +30,14 @@ func main() {
 	}
 
 	// Seed locations
-	if err := seeder.SeedLocations(db); err != nil {
+	location, err := seeder.SeedLocations(db)
+	if err != nil {
 		log.Fatalf("❌ Failed to seed locations: %v", err)
 	}
 
 	// Seed user
-	if err := seeder.SeedUser(db); err != nil {
+	user, err := seeder.SeedUser(db)
+	if err != nil {
 		log.Fatalf("❌ Failed to seed user: %v", err)
 	}
 
@@ -63,6 +65,11 @@ func main() {
 	// Seed roles permissions
 	if err := seeder.SeedSystemAdminPermissions(db, systemAdminRole); err != nil {
 		log.Fatalf("❌ Failed to seed system admin permissions: %v", err)
+	}
+
+	// Seed user assignments
+	if err := seeder.SeedUserAssignments(db, user, systemAdminRole, location); err != nil {
+		log.Fatalf("❌ Failed to seed user assignments: %v", err)
 	}
 
 	log.Println("Done!")

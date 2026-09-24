@@ -8,7 +8,7 @@ import (
 )
 
 type PermissionRepository interface {
-	FindAll(context.Context, Filter) ([]entity.Permission, int64, error)
+	FindAll(context.Context, Filter) ([]*entity.Permission, int64, error)
 	FindByID(context.Context, uuid.UUID) (*entity.Permission, error)
 	HasPermission(context.Context, uuid.UUID, string, string) (bool, error)
 	Create(context.Context, entity.Permission) error

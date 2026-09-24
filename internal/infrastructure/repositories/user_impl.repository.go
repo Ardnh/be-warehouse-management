@@ -70,7 +70,33 @@ func (r *UserRepositoryImpl) FindByID(ctx context.Context, userID uuid.UUID) (*e
 		First(&user).Error; err != nil {
 		return nil, err
 	}
+
 	return &user, nil
+}
+
+func (r *UserRepositoryImpl) FindProfileByID(ctx context.Context, userID uuid.UUID) (*entity.User, []*entity.RolePermission, error) {
+	var user entity.User
+	if err := Conn(ctx, r.db).
+		Preload("Assignments.Role").
+		Preload("Assignments.Location").
+		Where("id = ?", userID).
+		First(&user).Error; err != nil {
+		return nil, nil, err
+	}
+
+	if user.Assignments == nil {
+		return &user, []*entity.RolePermission{}, nil
+	}
+
+	var rolePermissions []*entity.RolePermission
+	if err := Conn(ctx, r.db).
+		Preload("Permission").
+		Where("role_id = ?", user.Assignments.RoleID).
+		Find(&rolePermissions).Error; err != nil {
+		return nil, nil, err
+	}
+
+	return &user, rolePermissions, nil
 }
 
 func (r *UserRepositoryImpl) Create(ctx context.Context, user entity.User) error {

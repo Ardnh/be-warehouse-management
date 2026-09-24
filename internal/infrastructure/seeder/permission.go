@@ -22,6 +22,7 @@ var permissionResources = []string{
 	constants.ResourceUserPermission,
 	constants.ResourceCustomer,
 	constants.ResourceWarehouse,
+	constants.ResourceLocation,
 	constants.ResourceUom,
 	constants.ResourceZone,
 	constants.ResourceRack,

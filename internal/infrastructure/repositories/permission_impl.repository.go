@@ -2,21 +2,27 @@ package repositories
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
 	domainrepositories "github.com/Ardnh/be-warehouse-management/internal/domain/repositories"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-type PermissionRepositoryImpl struct{ db *gorm.DB }
-
-func NewPermissionRepository(db *gorm.DB) domainrepositories.PermissionRepository {
-	return &PermissionRepositoryImpl{db: db}
+type PermissionRepositoryImpl struct {
+	db  *gorm.DB
+	log *logrus.Logger
 }
 
-func (r *PermissionRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]entity.Permission, int64, error) {
-	var items []entity.Permission
+func NewPermissionRepository(db *gorm.DB, log *logrus.Logger) domainrepositories.PermissionRepository {
+	return &PermissionRepositoryImpl{db: db, log: log}
+}
+
+func (r *PermissionRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]*entity.Permission, int64, error) {
+	var items []*entity.Permission
 	var total int64
 	q := Conn(ctx, r.db).Model(&entity.Permission{})
 	if filter.Search != "" {
@@ -61,7 +67,7 @@ func applyPermissionListFilter(query *gorm.DB, filter domainrepositories.Filter,
 	if filter.Search != "" && len(searchFields) > 0 {
 		pattern := "%" + filter.Search + "%"
 		condition := ""
-		args := make([]interface{}, 0, len(searchFields))
+		args := make([]any, 0, len(searchFields))
 		for _, field := range searchFields {
 			if condition != "" {
 				condition += " OR "
@@ -85,9 +91,17 @@ func applyPermissionListFilter(query *gorm.DB, filter domainrepositories.Filter,
 }
 
 func (r *PermissionRepositoryImpl) HasPermission(ctx context.Context, userID uuid.UUID, resource string, action string) (bool, error) {
+	entry := r.log.WithFields(logrus.Fields{
+		"component": "permission_repository",
+		"method":    "HasPermission",
+		"user_id":   userID.String(),
+		"resource":  resource,
+		"action":    action,
+	})
 
 	var count int64
 
+	start := time.Now()
 	err := Conn(ctx, r.db).
 		Table("user_assignments ua").
 		Joins("JOIN roles r ON r.id = ua.role_id").
@@ -104,9 +118,17 @@ func (r *PermissionRepositoryImpl) HasPermission(ctx context.Context, userID uui
 		).
 		Count(&count).Error
 
+	entry = entry.WithField("duration_ms", time.Since(start).Milliseconds())
+
 	if err != nil {
-		return false, err
+		entry.WithError(err).Error("failed to query user permission")
+		return false, fmt.Errorf("check permission %s:%s for user %s: %w", resource, action, userID, err)
 	}
+
+	entry.WithFields(logrus.Fields{
+		"match_count": count,
+		"allowed":     count > 0,
+	}).Debug("permission check completed")
 
 	return count > 0, nil
 }

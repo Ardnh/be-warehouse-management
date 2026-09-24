@@ -48,7 +48,7 @@ func (h *UserHandler) GetProfile(c fiber.Ctx) error {
 		return responses.NewErrorResponse(c, fiber.StatusUnauthorized, "Unauthorized", "Invalid user identity")
 	}
 
-	user, err := h.UserService.FindByID(c.Context(), userIDUUID)
+	user, err := h.UserService.FindProfileByID(c.Context(), userIDUUID)
 	if err != nil {
 		return responses.HandleError(c, err)
 	}

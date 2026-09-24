@@ -7,14 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type LocationResponse struct {
-	ID       uuid.UUID           `json:"id"`
-	Code     string              `json:"code"`
-	Name     string              `json:"name"`
-	Type     entity.LocationType `json:"type"`
-	IsActive bool                `json:"is_active"`
-}
-
 type UserAssignmentDTO struct {
 	ID         uuid.UUID         `json:"id"`
 	UserID     uuid.UUID         `json:"user_id"`
@@ -49,8 +41,8 @@ func ToUserAssignmentDTO(assignment *entity.UserAssignment) *UserAssignmentDTO {
 		}
 	}
 	if assignment.Role != nil {
-		role := NewRoleResponse(*assignment.Role)
-		result.Role = &role
+		role := ToRoleResponse(assignment.Role)
+		result.Role = role
 	}
 	return result
 }

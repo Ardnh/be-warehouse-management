@@ -1,13 +1,10 @@
 package dto
 
-import "github.com/Ardnh/be-warehouse-management/internal/domain/entity"
+import (
+	"fmt"
 
-// type PermissionDTO struct {
-// 	ID          string `json:"id"`
-// 	Resource    string `json:"resource"`
-// 	Action      string `json:"action"`
-// 	Description string `json:"description"`
-// }
+	"github.com/Ardnh/be-warehouse-management/internal/domain/entity"
+)
 
 type CreatePermissionRequest struct {
 	Resource    string `json:"resource" validate:"required"`
@@ -21,20 +18,20 @@ type UpdatePermissionRequest struct {
 	Description string `json:"description"`
 }
 
-type PermissionDTO struct {
+type PermissionResponse struct {
 	ID          string `json:"id"`
 	Resource    string `json:"resource"`
 	Action      string `json:"action"`
 	Description string `json:"description"`
 }
 
-type PermissionResponseDTO struct {
-	Group  string           `json:"group"`
-	Action []*PermissionDTO `json:"action"`
+type PermissionGroupResponse struct {
+	Group  string                `json:"group"`
+	Action []*PermissionResponse `json:"action"`
 }
 
-func ToPermissionDTO(permission *entity.Permission) *PermissionDTO {
-	return &PermissionDTO{
+func ToPermissionResponse(permission *entity.Permission) *PermissionResponse {
+	return &PermissionResponse{
 		ID:          permission.ID.String(),
 		Resource:    permission.Resource,
 		Action:      permission.Action,
@@ -42,25 +39,22 @@ func ToPermissionDTO(permission *entity.Permission) *PermissionDTO {
 	}
 }
 
-func ToPermissionsDTO(permissions []entity.Permission) []PermissionResponseDTO {
-	index := make(map[string]int, len(permissions))
-	result := make([]PermissionResponseDTO, 0, len(permissions))
+func ToFormattedPermissionResponse(permission *entity.Permission) string {
+	return fmt.Sprintf("%s:%s:%s", permission.Resource, permission.Action, permission.Description)
+}
 
-	for i := range permissions {
-		p := &permissions[i]
-
-		pos, ok := index[p.Resource]
-		if !ok {
-			pos = len(result)
-			index[p.Resource] = pos
-			result = append(result, PermissionResponseDTO{
-				Group:  p.Resource,
-				Action: make([]*PermissionDTO, 0, 4),
-			})
-		}
-
-		result[pos].Action = append(result[pos].Action, ToPermissionDTO(p))
+func ToFormattedPermissionResponses(permissions []*entity.Permission) []string {
+	result := make([]string, 0, len(permissions))
+	for _, permission := range permissions {
+		result = append(result, ToFormattedPermissionResponse(permission))
 	}
+	return result
+}
 
+func ToPermissionsResponse(permissions []*entity.Permission) []*PermissionResponse {
+	result := make([]*PermissionResponse, 0, len(permissions))
+	for _, permission := range permissions {
+		result = append(result, ToPermissionResponse(permission))
+	}
 	return result
 }

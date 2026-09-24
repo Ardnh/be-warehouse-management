@@ -37,7 +37,7 @@ func (r *CustomerRepositoryImpl) FindAll(ctx context.Context, filter domainrepos
 	offset := (filter.Page - 1) * filter.PageSize
 
 	// --- Base query TANPA preload (untuk count & filter)
-	baseQuery := Conn(ctx, r.db).Model(&entity.Customer{}).Preload("Warehouse")
+	baseQuery := Conn(ctx, r.db).Model(&entity.Customer{})
 
 	// --- Search (by name)
 	if filter.Search != "" {

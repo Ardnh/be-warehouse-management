@@ -42,24 +42,19 @@ type AssignRolesRequest struct {
 }
 
 type User struct {
-	ID              uuid.UUID                `json:"id"`
-	Username        string                   `json:"username"`
-	Email           string                   `json:"email"`
-	FullName        string                   `json:"full_name"`
-	Status          string                   `json:"status"`
-	Roles           []RoleResponse           `json:"roles,omitempty"`
-	Assignments     []*UserAssignmentDTO     `json:"assignments,omitempty"`
-	UserPermissions []UserPermissionResponse `json:"user_permissions,omitempty"`
-	CreatedAt       time.Time                `json:"created_at"`
-	UpdatedAt       time.Time                `json:"updated_at"`
+	ID          uuid.UUID         `json:"id"`
+	Username    string            `json:"username"`
+	Email       string            `json:"email"`
+	FullName    string            `json:"full_name"`
+	Status      string            `json:"status"`
+	Location    *LocationResponse `json:"location,omitempty"`
+	Roles       *RoleResponse     `json:"roles,omitempty"`
+	Permissions []string          `json:"permissions,omitempty"`
+	CreatedAt   time.Time         `json:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at"`
 }
 
-type UserPermissionResponse struct {
-	PermissionID uuid.UUID      `json:"permission_id"`
-	Permission   *PermissionDTO `json:"permission,omitempty"`
-}
-
-func ToUserDTO(u *entity.User) User {
+func ToUserResponse(u *entity.User) User {
 	if u == nil {
 		return User{}
 	}
@@ -74,21 +69,34 @@ func ToUserDTO(u *entity.User) User {
 		UpdatedAt: u.UpdatedAt,
 	}
 
-	for i := range u.Assignments {
-		assignment := &u.Assignments[i]
-		res.Assignments = append(res.Assignments, ToUserAssignmentDTO(assignment))
-		if assignment.Role != nil {
-			res.Roles = append(res.Roles, NewRoleResponse(*assignment.Role))
-		}
+	return res
+}
+
+func ToUserProfileResponse(u *entity.User, permission []*entity.RolePermission) User {
+	if u == nil {
+		return User{}
+	}
+
+	res := User{
+		ID:          u.ID,
+		Username:    u.Username,
+		Email:       u.Email,
+		FullName:    u.FullName,
+		Status:      u.Status,
+		CreatedAt:   u.CreatedAt,
+		UpdatedAt:   u.UpdatedAt,
+		Location:    ToLocationResponse(u.Assignments.Location),
+		Roles:       ToRoleResponse(u.Assignments.Role),
+		Permissions: ToFormattedRolePermissionsResponse(permission),
 	}
 
 	return res
 }
 
-func ToUserDTOs(users []*entity.User) []User {
+func ToUserResponses(users []*entity.User) []User {
 	res := make([]User, 0, len(users))
 	for _, u := range users {
-		res = append(res, ToUserDTO(u))
+		res = append(res, ToUserResponse(u))
 	}
 	return res
 }

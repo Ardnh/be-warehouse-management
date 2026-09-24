@@ -27,7 +27,7 @@ func (s *RoleServiceImpl) FindAll(c context.Context, f dto.FilterDTO) ([]dto.Rol
 	}
 	o := make([]dto.RoleResponse, 0, len(x))
 	for _, v := range x {
-		o = append(o, dto.NewRoleResponse(v))
+		o = append(o, *dto.ToRoleResponse(&v))
 	}
 	return o, t, nil
 }
@@ -36,7 +36,7 @@ func (s *RoleServiceImpl) FindByID(c context.Context, id uuid.UUID) (*dto.RoleRe
 	if e != nil {
 		return nil, e
 	}
-	v := dto.NewRoleResponse(*x)
+	v := *dto.ToRoleResponse(x)
 	return &v, nil
 }
 func (s *RoleServiceImpl) Create(c context.Context, r dto.CreateRoleRequest) error {
