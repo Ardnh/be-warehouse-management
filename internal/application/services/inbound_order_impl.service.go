@@ -40,24 +40,47 @@ func NewInboundOrderService(repository repositories.InboundOrderRepository, item
 }
 
 func (s *InboundOrderServiceImpl) FindAll(ctx context.Context, filter dto.FilterDTO) ([]dto.InboundOrderResponse, int64, error) {
+	entry := s.log.WithFields(logrus.Fields{
+		"component": "inbound_order_service",
+		"method":    "FindAll",
+		"page":      filter.Page,
+		"page_size": filter.Size,
+	})
 	list, total, err := s.inboundOrder.FindAll(ctx, repositories.Filter{Search: filter.Search, Page: filter.Page, PageSize: filter.Size, SortBy: filter.SortBy, SortDir: filter.SortDir})
 	if err != nil {
+		entry.WithError(err).Error("failed to list inbound orders")
 		return nil, 0, err
 	}
+	entry.WithFields(logrus.Fields{"result_count": len(list), "total": total}).Debug("inbound orders listed")
 	return dto.ToInboundOrderResponses(list), total, nil
 }
 
 func (s *InboundOrderServiceImpl) FindByID(ctx context.Context, id uuid.UUID) (*dto.InboundOrderResponse, error) {
+	entry := s.log.WithFields(logrus.Fields{
+		"component":        "inbound_order_service",
+		"method":           "FindByID",
+		"inbound_order_id": id.String(),
+	})
 	item, err := s.inboundOrder.FindByID(ctx, id)
 	if err != nil {
+		entry.WithError(err).Error("failed to retrieve inbound order")
 		return nil, err
 	}
+	entry.Debug("inbound order retrieved")
 	return dto.ToInboundOrderResponse(item), nil
 }
 
 func (s *InboundOrderServiceImpl) Create(ctx context.Context, warehouseID uuid.UUID, request dto.CreateInboundOrderRequest) error {
+	entry := s.log.WithFields(logrus.Fields{
+		"component":    "inbound_order_service",
+		"method":       "Create",
+		"warehouse_id": warehouseID.String(),
+		"customer_id":  request.CustomerID.String(),
+		"item_count":   len(request.Items),
+	})
 
-	return s.tx.Do(ctx, func(txCtx context.Context) error {
+	orderNumber := ""
+	err := s.tx.Do(ctx, func(txCtx context.Context) error {
 
 		// 1. Validate Customer
 		customer, err := s.customers.FindByID(txCtx, request.CustomerID)
@@ -110,6 +133,7 @@ func (s *InboundOrderServiceImpl) Create(ctx context.Context, warehouseID uuid.U
 			CreatedAt:         time.Now(),
 			UpdatedAt:         time.Now(),
 		}
+		orderNumber = order.OrderNumber
 
 		// 4. Validate + auto-register Products
 		for _, item := range request.Items {
@@ -170,9 +194,20 @@ func (s *InboundOrderServiceImpl) Create(ctx context.Context, warehouseID uuid.U
 		// 6. Create Inbound Order + Items
 		return s.inboundOrder.Create(txCtx, order)
 	})
+	if err != nil {
+		entry.WithError(err).Error("failed to create inbound order")
+		return err
+	}
+	entry.WithField("order_number", orderNumber).Info("inbound order created")
+	return nil
 }
 
 func (s *InboundOrderServiceImpl) Update(ctx context.Context, id uuid.UUID, request dto.UpdateInboundOrderRequest) error {
+	entry := s.log.WithFields(logrus.Fields{
+		"component":        "inbound_order_service",
+		"method":           "Update",
+		"inbound_order_id": id.String(),
+	})
 	// order, err := s.inboundOrder.FindByID(ctx, id)
 	// if err != nil {
 	// 	return err
@@ -204,27 +239,52 @@ func (s *InboundOrderServiceImpl) Update(ctx context.Context, id uuid.UUID, requ
 	// 		return err
 	// 	}
 	// }
+	entry.Warn("inbound order update currently performs no changes")
 	return nil
 }
 
 func (s *InboundOrderServiceImpl) UpdateStatus(ctx context.Context, id uuid.UUID, request dto.UpdateInboundOrderStatusRequest) error {
+	entry := s.log.WithFields(logrus.Fields{
+		"component":        "inbound_order_service",
+		"method":           "UpdateStatus",
+		"inbound_order_id": id.String(),
+		"status":           request.Status,
+	})
 	order, err := s.inboundOrder.FindByID(ctx, id)
 	if err != nil {
+		entry.WithError(err).Error("failed to find inbound order for status update")
 		return err
 	}
 	status := entity.InboundOrderStatus(request.Status)
 	if !status.IsValid() {
-		return fiberErr("invalid inbound order status")
+		err := fiberErr("invalid inbound order status")
+		entry.WithError(err).Warn("invalid inbound order status requested")
+		return err
 	}
 	order.Status = status
 	if request.Notes != nil {
 		order.Notes = request.Notes
 	}
-	return s.inboundOrder.Update(ctx, order)
+	if err := s.inboundOrder.Update(ctx, order); err != nil {
+		entry.WithError(err).Error("failed to persist inbound order status")
+		return err
+	}
+	entry.Info("inbound order status updated")
+	return nil
 }
 
 func (s *InboundOrderServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	return s.inboundOrder.Delete(ctx, id)
+	entry := s.log.WithFields(logrus.Fields{
+		"component":        "inbound_order_service",
+		"method":           "Delete",
+		"inbound_order_id": id.String(),
+	})
+	if err := s.inboundOrder.Delete(ctx, id); err != nil {
+		entry.WithError(err).Error("failed to delete inbound order")
+		return err
+	}
+	entry.Info("inbound order deleted")
+	return nil
 }
 
 // fiberErr is kept local to avoid coupling the application service to HTTP details.

@@ -2,21 +2,29 @@ info:
   name: create inbound order
   type: http
   seq: 3
+
 http:
   method: POST
   url: "{{base_url}}/inbound-order/"
-  auth: inherit
   body:
     type: json
     data: |-
       {
-        "customer_id": "00000000-0000-0000-0000-000000000000",
-        "expected_arrival_at": "2026-01-31T09:00:00Z",
-        "notes": "Inbound shipment",
-        "items": [
+        "customer_id":"771c5708-7700-408b-bd58-db898ba7fba9",
+        "expected_arrival_at":"2026-09-30T07:22:00.000Z",
+        "notes":"New inbound order",
+        "items":[
           {
-            "product_id": "00000000-0000-0000-0000-000000000000",
-            "expected_qty": 100
+            "product_id":"9b89394d-3932-4a62-b77b-9ae2eb1f32c6",
+            "expected_qty":10
           }
         ]
       }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
