@@ -28,7 +28,7 @@ func (s *WarehouseServiceImpl) FindAll(ctx context.Context, filter dto.FilterDTO
 	}
 	result := make([]dto.Warehouse, 0, len(items))
 	for _, item := range items {
-		result = append(result, dto.NewWarehouseResponse(item))
+		result = append(result, dto.ToWarehouseResponse(item))
 	}
 	return result, total, nil
 }
@@ -38,24 +38,18 @@ func (s *WarehouseServiceImpl) FindByID(ctx context.Context, id uuid.UUID) (*dto
 	if err != nil {
 		return nil, err
 	}
-	result := dto.NewWarehouseResponse(*item)
+	result := dto.ToWarehouseResponse(item)
 	return &result, nil
 }
 
 func (s *WarehouseServiceImpl) Create(ctx context.Context, request dto.CreateWarehouseRequest) error {
-	return s.repository.Create(ctx, entity.Warehouse{ID: uuid.New(), Code: request.Code, Name: request.Name, Address: request.Address, Status: request.Status, CreatedAt: time.Now()})
+	return s.repository.Create(ctx, entity.Warehouse{ID: uuid.New(), LocationID: request.LocationID, Status: request.Status, CreatedAt: time.Now()})
 }
 
 func (s *WarehouseServiceImpl) Update(ctx context.Context, id uuid.UUID, request dto.UpdateWarehouseRequest) error {
 	item, err := s.repository.FindByID(ctx, id)
 	if err != nil {
 		return err
-	}
-	if request.Name != nil {
-		item.Name = *request.Name
-	}
-	if request.Address != nil {
-		item.Address = *request.Address
 	}
 	if request.Status != nil {
 		item.Status = *request.Status

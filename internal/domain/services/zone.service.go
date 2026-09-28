@@ -9,6 +9,7 @@ import (
 
 type ZoneService interface {
 	FindAll(ctx context.Context, filter dto.FilterDTO) ([]dto.ZoneResponse, int64, error)
+	FindAllByWarehouseID(ctx context.Context, warehouseID uuid.UUID, filter dto.FilterDTO) ([]dto.ZoneResponse, int64, error)
 	FindByID(ctx context.Context, id uuid.UUID) (*dto.ZoneResponse, error)
 	Create(ctx context.Context, request dto.CreateZoneRequest) error
 	Update(ctx context.Context, id uuid.UUID, request dto.UpdateZoneRequest) error

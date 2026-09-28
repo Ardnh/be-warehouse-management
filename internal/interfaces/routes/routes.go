@@ -82,6 +82,7 @@ func SetupAPIRoutes(
 	// Zone
 	zone := api.Group("/zone", authMiddleware.Authenticate())
 	zone.Get("/", authzMiddleware.Require("zone", "read"), zoneHandler.FindAll)
+	zone.Get("/warehouse/:warehouse_id", authzMiddleware.Require("zone", "read"), zoneHandler.FindAllByWarehouseID)
 	zone.Get("/:id", authzMiddleware.Require("zone", "read"), zoneHandler.FindByID)
 	zone.Post("/", authzMiddleware.Require("zone", "create"), zoneHandler.Create)
 	zone.Put("/:id", authzMiddleware.Require("zone", "update"), zoneHandler.Update)

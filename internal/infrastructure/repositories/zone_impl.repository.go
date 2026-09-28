@@ -15,8 +15,8 @@ func NewZoneRepository(db *gorm.DB) domainrepositories.ZoneRepository {
 	return &ZoneRepositoryImpl{db: db}
 }
 
-func (r *ZoneRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]entity.Zone, int64, error) {
-	var items []entity.Zone
+func (r *ZoneRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]*entity.Zone, int64, error) {
+	var items []*entity.Zone
 	var total int64
 	base := Conn(ctx, r.db).Model(&entity.Zone{}).Preload("Warehouse")
 	if filter.Search != "" {
@@ -32,12 +32,32 @@ func (r *ZoneRepositoryImpl) FindAll(ctx context.Context, filter domainrepositor
 	return items, total, nil
 }
 
+func (r *ZoneRepositoryImpl) FindAllByWarehouseID(ctx context.Context, warehouseID uuid.UUID, filter domainrepositories.Filter) ([]*entity.Zone, int64, error) {
+	var items []*entity.Zone
+	var total int64
+	base := Conn(ctx, r.db).
+		Model(&entity.Zone{}).
+		Preload("Warehouse").
+		Where("warehouse_id = ?", warehouseID)
+	if filter.Search != "" {
+		base = base.Where("code ILIKE ? OR name ILIKE ?", "%"+filter.Search+"%", "%"+filter.Search+"%")
+	}
+	if err := base.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	base = applyMasterListFilter(base, filter)
+	if err := base.Find(&items).Error; err != nil {
+		return nil, 0, err
+	}
+	return items, total, nil
+}
+
 func (r *ZoneRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.Zone, error) {
-	var item entity.Zone
+	var item *entity.Zone
 	if err := Conn(ctx, r.db).Preload("Warehouse").Preload("Racks").First(&item, id).Error; err != nil {
 		return nil, err
 	}
-	return &item, nil
+	return item, nil
 }
 
 func (r *ZoneRepositoryImpl) Create(ctx context.Context, item entity.Zone) error {

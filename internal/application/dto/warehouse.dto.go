@@ -8,36 +8,42 @@ import (
 )
 
 type CreateWarehouseRequest struct {
-	Code    string `json:"code" validate:"required,max=50"`
-	Name    string `json:"name" validate:"required,max=150"`
-	Address string `json:"address" validate:"omitempty"`
-	Status  string `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE"`
+	LocationID uuid.UUID `json:"location_id" validate:"required"`
+	Status     string    `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE"`
 }
 
 type UpdateWarehouseRequest struct {
-	Name    *string `json:"name" validate:"omitempty,max=150"`
-	Address *string `json:"address"`
-	Status  *string `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE"`
+	LocationID *uuid.UUID `json:"location_id" validate:"omitempty"`
+	Status     *string    `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE"`
 }
 
 type Warehouse struct {
-	ID        uuid.UUID `json:"id"`
-	Code      string    `json:"code"`
-	Name      string    `json:"name"`
-	Address   string    `json:"address"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         uuid.UUID `json:"id"`
+	LocationID uuid.UUID `json:"location_id"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+
+	Location *LocationResponse `json:"location,omitempty"`
+	Zones    []ZoneResponse    `json:"zones,omitempty"`
 }
 
-func NewWarehouseResponse(w entity.Warehouse) Warehouse {
-	return Warehouse{
-		ID:        w.ID,
-		Code:      w.Code,
-		Name:      w.Name,
-		Address:   w.Address,
-		Status:    w.Status,
-		CreatedAt: w.CreatedAt,
-		UpdatedAt: w.UpdatedAt,
+func ToWarehouseResponse(w *entity.Warehouse) Warehouse {
+	warehouse := Warehouse{
+		ID:         w.ID,
+		LocationID: w.LocationID,
+		Status:     w.Status,
+		CreatedAt:  w.CreatedAt,
+		UpdatedAt:  w.UpdatedAt,
 	}
+
+	if w.Location != nil {
+		warehouse.Location = ToLocationResponse(w.Location)
+	}
+
+	if w.Zones != nil {
+		warehouse.Zones = ToZoneResponses(w.Zones)
+	}
+
+	return warehouse
 }

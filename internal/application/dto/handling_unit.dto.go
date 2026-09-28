@@ -19,27 +19,21 @@ type UpdateHandlingUnitRequest struct {
 }
 
 type HandlingUnitResponse struct {
-	ID            uuid.UUID                  `json:"id"`
-	Code          string                     `json:"code"`
-	WarehouseID   uuid.UUID                  `json:"warehouse_id"`
-	WarehouseCode string                     `json:"warehouse_code,omitempty"`
-	Status        string                     `json:"status"`
-	Items         []HandlingUnitItemResponse `json:"items,omitempty"`
-	CreatedAt     time.Time                  `json:"created_at"`
-	UpdatedAt     time.Time                  `json:"updated_at"`
+	ID          uuid.UUID                  `json:"id"`
+	WarehouseID uuid.UUID                  `json:"warehouse_id"`
+	Status      string                     `json:"status"`
+	Items       []HandlingUnitItemResponse `json:"items,omitempty"`
+	CreatedAt   time.Time                  `json:"created_at"`
+	UpdatedAt   time.Time                  `json:"updated_at"`
 }
 
 func NewHandlingUnitResponse(h entity.HandlingUnit) HandlingUnitResponse {
 	res := HandlingUnitResponse{
 		ID:          h.ID,
-		Code:        h.Code,
 		WarehouseID: h.WarehouseID,
 		Status:      h.Status,
 		CreatedAt:   h.CreatedAt,
 		UpdatedAt:   h.UpdatedAt,
-	}
-	if h.Warehouse != nil {
-		res.WarehouseCode = h.Warehouse.Code
 	}
 	for _, item := range h.Items {
 		res.Items = append(res.Items, NewHandlingUnitItemResponse(item))

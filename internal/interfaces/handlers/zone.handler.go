@@ -30,6 +30,22 @@ func (h *ZoneHandler) FindAll(c fiber.Ctx) error {
 	}
 	return responses.NewSuccessResponseWithPagination(c, fiber.StatusOK, "Zones retrieved successfully", result, dto.NewPagination(filter, total))
 }
+func (h *ZoneHandler) FindAllByWarehouseID(c fiber.Ctx) error {
+	warehouseID, err := masterParamID(c, "warehouse_id")
+	if err != nil {
+		return responses.HandleError(c, err)
+	}
+	filter, err := masterFilter(c)
+	if err != nil {
+		return responses.HandleError(c, err)
+	}
+	result, total, err := h.service.FindAllByWarehouseID(c.Context(), warehouseID, filter)
+	if err != nil {
+		return responses.HandleError(c, err)
+	}
+	return responses.NewSuccessResponseWithPagination(c, fiber.StatusOK, "Warehouse zones retrieved successfully", result, dto.NewPagination(filter, total))
+}
+
 func (h *ZoneHandler) FindByID(c fiber.Ctx) error {
 	id, err := masterID(c)
 	if err != nil {

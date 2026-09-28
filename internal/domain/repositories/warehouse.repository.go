@@ -8,7 +8,7 @@ import (
 )
 
 type WarehouseRepository interface {
-	FindAll(ctx context.Context, filter Filter) ([]entity.Warehouse, int64, error)
+	FindAll(ctx context.Context, filter Filter) ([]*entity.Warehouse, int64, error)
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.Warehouse, error)
 	Create(ctx context.Context, warehouse entity.Warehouse) error
 	Update(ctx context.Context, warehouse *entity.Warehouse) error

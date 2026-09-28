@@ -28,7 +28,26 @@ func (s *ZoneServiceImpl) FindAll(ctx context.Context, filter dto.FilterDTO) ([]
 	}
 	result := make([]dto.ZoneResponse, 0, len(items))
 	for _, item := range items {
-		result = append(result, dto.NewZoneResponse(item))
+		result = append(result, dto.ToZoneResponse(item))
+	}
+	return result, total, nil
+}
+
+func (s *ZoneServiceImpl) FindAllByWarehouseID(ctx context.Context, warehouseID uuid.UUID, filter dto.FilterDTO) ([]dto.ZoneResponse, int64, error) {
+	items, total, err := s.repository.FindAllByWarehouseID(ctx, warehouseID, repositories.Filter{
+		Search:   filter.Search,
+		Page:     filter.Page,
+		PageSize: filter.Size,
+		SortBy:   filter.SortBy,
+		SortDir:  filter.SortDir,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	result := make([]dto.ZoneResponse, 0, len(items))
+	for _, item := range items {
+		result = append(result, dto.ToZoneResponse(item))
 	}
 	return result, total, nil
 }
@@ -38,7 +57,7 @@ func (s *ZoneServiceImpl) FindByID(ctx context.Context, id uuid.UUID) (*dto.Zone
 	if err != nil {
 		return nil, err
 	}
-	result := dto.NewZoneResponse(*item)
+	result := dto.ToZoneResponse(item)
 	return &result, nil
 }
 

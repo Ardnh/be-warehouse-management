@@ -15,10 +15,10 @@ func NewWarehouseRepository(db *gorm.DB) domainrepositories.WarehouseRepository 
 	return &WarehouseRepositoryImpl{db: db}
 }
 
-func (r *WarehouseRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]entity.Warehouse, int64, error) {
-	var items []entity.Warehouse
+func (r *WarehouseRepositoryImpl) FindAll(ctx context.Context, filter domainrepositories.Filter) ([]*entity.Warehouse, int64, error) {
+	var items []*entity.Warehouse
 	var total int64
-	base := Conn(ctx, r.db).Model(&entity.Warehouse{})
+	base := Conn(ctx, r.db).Preload("Location").Preload("Zones").Model(&entity.Warehouse{})
 	if filter.Search != "" {
 		base = base.Where("code ILIKE ? OR name ILIKE ?", "%"+filter.Search+"%", "%"+filter.Search+"%")
 	}
@@ -34,7 +34,7 @@ func (r *WarehouseRepositoryImpl) FindAll(ctx context.Context, filter domainrepo
 
 func (r *WarehouseRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.Warehouse, error) {
 	var item entity.Warehouse
-	if err := Conn(ctx, r.db).Preload("Zones").First(&item, id).Error; err != nil {
+	if err := Conn(ctx, r.db).Preload("Location").Preload("Zones").First(&item, id).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil

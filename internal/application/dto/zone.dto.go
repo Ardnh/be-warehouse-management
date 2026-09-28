@@ -18,23 +18,23 @@ type CreateZoneRequest struct {
 
 type UpdateZoneRequest struct {
 	Name   *string `json:"name" validate:"omitempty,max=100"`
+	Code   *string `json:"code" validate:"omitempty,max=50"`
 	Type   *string `json:"type" validate:"omitempty,oneof=RECEIVING STORAGE PACKING OUTBOUND DAMAGED STAGING"`
 	Status *string `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE"`
 }
 
 type ZoneResponse struct {
-	ID            uuid.UUID `json:"id"`
-	WarehouseID   uuid.UUID `json:"warehouse_id"`
-	WarehouseCode string    `json:"warehouse_code,omitempty"`
-	Code          string    `json:"code"`
-	Name          string    `json:"name"`
-	Type          string    `json:"type"`
-	Status        string    `json:"status"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	ID          uuid.UUID `json:"id"`
+	WarehouseID uuid.UUID `json:"warehouse_id"`
+	Code        string    `json:"code"`
+	Name        string    `json:"name"`
+	Type        string    `json:"type"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-func NewZoneResponse(z entity.Zone) ZoneResponse {
+func ToZoneResponse(z *entity.Zone) ZoneResponse {
 	res := ZoneResponse{
 		ID:          z.ID,
 		WarehouseID: z.WarehouseID,
@@ -45,8 +45,16 @@ func NewZoneResponse(z entity.Zone) ZoneResponse {
 		CreatedAt:   z.CreatedAt,
 		UpdatedAt:   z.UpdatedAt,
 	}
-	if z.Warehouse != nil {
-		res.WarehouseCode = z.Warehouse.Code
+	return res
+}
+
+func ToZoneResponses(zones []*entity.Zone) []ZoneResponse {
+	var res []ZoneResponse
+	for _, z := range zones {
+		if z == nil {
+			continue
+		}
+		res = append(res, ToZoneResponse(z))
 	}
 	return res
 }
