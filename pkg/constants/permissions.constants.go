@@ -4,7 +4,7 @@ package constants
 const (
 	ResourceUser             = "user"
 	ResourceUserRole         = "user-role"
-	ResourceUserPermission   = "user-permission"
+	ResourcePermission   	 = "permission"
 	ResourceCustomer         = "customer"
 	ResourceWarehouse        = "warehouse"
 	ResourceLocation         = "location"

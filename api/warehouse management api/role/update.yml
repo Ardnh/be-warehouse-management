@@ -1,20 +1,23 @@
 info:
-  name: update role
-  type: http
-  seq: 4
+   name: update role
+   type: http
+   seq: 4
 http:
-  method: PUT
-  url: "{{base_url}}/role/:id"
-  params:
-    - name: id
-      value: ""
-      type: path
-  auth: inherit
-  body:
-    type: json
-    data: |-
-      {
-        "name": "Updated role",
-        "description": "Updated description",
-        "status": "ACTIVE"
-      }
+   method: PUT
+   url: "{{base_url}}/role/:id"
+   params:
+      - name: id
+        value: ""
+        type: path
+   auth: inherit
+   body:
+      type: json
+      data: |-
+         {
+           "name": "Updated role",
+           "description": "Updated description",
+           "status": "ACTIVE",
+           "permission_ids": [
+             "771c5708-7700-408b-bd58-db898ba7fba9"
+           ]
+         }

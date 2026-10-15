@@ -5,13 +5,13 @@ info:
 
 http:
   method: GET
-  url: "{{base_url}}/permission?page=1&page_size=10"
+  url: "{{base_url}}/permission?page=1&page_size=100"
   params:
     - name: page
       value: "1"
       type: query
     - name: page_size
-      value: "10"
+      value: "100"
       type: query
   auth: inherit
 

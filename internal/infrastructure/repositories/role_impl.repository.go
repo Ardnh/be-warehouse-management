@@ -33,18 +33,43 @@ func (r *RoleRepositoryImpl) FindAll(ctx context.Context, filter domainrepositor
 
 func (r *RoleRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.Role, error) {
 	var item entity.Role
-	if err := Conn(ctx, r.db).First(&item, id).Error; err != nil {
+	if err := Conn(ctx, r.db).
+		Preload("RolePermissions.Permission").
+		First(&item, id).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
 }
 
 func (r *RoleRepositoryImpl) Create(ctx context.Context, item entity.Role) error {
-	return Conn(ctx, r.db).Create(&item).Error
+	return Conn(ctx, r.db).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Omit("RolePermissions", "Assignments").Create(&item).Error; err != nil {
+			return err
+		}
+		return createRolePermissions(tx, item.ID, item.RolePermissions)
+	})
 }
 
 func (r *RoleRepositoryImpl) Update(ctx context.Context, item *entity.Role) error {
-	return Conn(ctx, r.db).Save(item).Error
+	return Conn(ctx, r.db).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Omit("RolePermissions", "Assignments").Save(item).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("role_id = ?", item.ID).Delete(&entity.RolePermission{}).Error; err != nil {
+			return err
+		}
+		return createRolePermissions(tx, item.ID, item.RolePermissions)
+	})
+}
+
+func createRolePermissions(tx *gorm.DB, roleID uuid.UUID, rolePermissions []entity.RolePermission) error {
+	if len(rolePermissions) == 0 {
+		return nil
+	}
+	for i := range rolePermissions {
+		rolePermissions[i].RoleID = roleID
+	}
+	return tx.Create(&rolePermissions).Error
 }
 
 func (r *RoleRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {

@@ -44,7 +44,17 @@ func (s *RoleServiceImpl) Create(c context.Context, r dto.CreateRoleRequest) err
 	if st == "" {
 		st = "ACTIVE"
 	}
-	return s.repository.Create(c, entity.Role{ID: uuid.New(), Code: r.Code, Name: r.Name, Description: r.Description, Status: st, CreatedAt: time.Now()})
+	roleID := uuid.New()
+	return s.repository.Create(c, entity.Role{
+		ID:              roleID,
+		Code:            r.Code,
+		Name:            r.Name,
+		Description:     r.Description,
+		Status:          st,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+		RolePermissions: toRolePermissions(roleID, r.PermissionIDs),
+	})
 }
 func (s *RoleServiceImpl) Update(c context.Context, id uuid.UUID, r dto.UpdateRoleRequest) error {
 	x, e := s.repository.FindByID(c, id)
@@ -60,7 +70,22 @@ func (s *RoleServiceImpl) Update(c context.Context, id uuid.UUID, r dto.UpdateRo
 	if r.Status != nil {
 		x.Status = *r.Status
 	}
+	if r.PermissionIDs != nil {
+		x.RolePermissions = toRolePermissions(id, r.PermissionIDs)
+	}
+	x.UpdatedAt = time.Now()
 	return s.repository.Update(c, x)
+}
+
+func toRolePermissions(roleID uuid.UUID, permissionIDs []uuid.UUID) []entity.RolePermission {
+	rolePermissions := make([]entity.RolePermission, 0, len(permissionIDs))
+	for _, permissionID := range permissionIDs {
+		rolePermissions = append(rolePermissions, entity.RolePermission{
+			RoleID:       roleID,
+			PermissionID: permissionID,
+		})
+	}
+	return rolePermissions
 }
 func (s *RoleServiceImpl) Delete(c context.Context, id uuid.UUID) error {
 	return s.repository.Delete(c, id)

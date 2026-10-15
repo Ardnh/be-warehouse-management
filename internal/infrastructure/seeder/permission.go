@@ -19,7 +19,7 @@ type Permission struct {
 var permissionResources = []string{
 	constants.ResourceUser,
 	constants.ResourceUserRole,
-	constants.ResourceUserPermission,
+	constants.ResourcePermission,
 	constants.ResourceCustomer,
 	constants.ResourceWarehouse,
 	constants.ResourceLocation,
